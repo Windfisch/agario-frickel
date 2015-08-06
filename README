@@ -1,0 +1,4 @@
+git submodule update --init
+python3 test.py
+wait for the counter to reach 100 (couple of seconds)
+play :)
