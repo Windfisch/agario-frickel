@@ -91,7 +91,7 @@ i=0
 while True:
     i=i+1
     print(i)
-    if (i==100):
+    if (i==10):
         c.send_respawn()
 
     screen.fill((0,0,0))
