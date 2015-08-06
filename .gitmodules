@@ -1,0 +1,3 @@
+[submodule "agarnet"]
+	path = agarnet
+	url = https://github.com/Gjum/agarnet
