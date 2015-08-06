@@ -1,4 +1,9 @@
+prerequisites: python3, pygame and websocket-client
+
 git submodule update --init
 python3 test.py
-wait for the counter to reach 100 (couple of seconds)
-play :)
+
+move mouse  = move
+left click  = split
+right click = eject some mass
+
