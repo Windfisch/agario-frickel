@@ -98,7 +98,15 @@ while True:
     print(c.on_message())
 
     for cell in c.world.cells.values():
-        pygame.draw.circle(screen, (255,0,0), (int((cell.pos[0]-c.player.center[0])/2+400), int((cell.pos[1]-c.player.center[1])/2+300)), int(cell.size/2))
+        if cell.is_virus:
+            color=(0,255,0)
+        elif cell.is_food:
+            color=(127,127,127)
+        elif cell.is_ejected_mass:
+            color=(255,255,255)
+        else:
+            color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
+        pygame.draw.circle(screen, color, (int((cell.pos[0]-c.player.center[0])/2+400), int((cell.pos[1]-c.player.center[1])/2+300)), int(cell.size/2))
 
     print(list(c.player.own_cells))
    
