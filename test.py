@@ -88,6 +88,8 @@ c.player.nick="Wyndfysch"
 screen=pygame.display.set_mode((800,600))
 
 i=0
+
+mb=pygame.mouse.get_pressed()
 while True:
     i=i+1
     print(i)
@@ -113,7 +115,17 @@ while True:
     mp=pygame.mouse.get_pos()
     pygame.event.poll()
     print(mp)
+
+    oldmb=mb
+    mb = pygame.mouse.get_pressed()
+
+    
     c.send_target(((mp[0]-400)*2)+c.player.center[0],(mp[1]-300)*2+c.player.center[1])
+
+    if mb[0] and not oldmb[0]:
+        c.send_split()
+    if mb[2] and not oldmb[2]:
+        c.send_shoot()
 
     pygame.display.update()
 
