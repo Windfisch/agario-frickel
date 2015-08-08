@@ -7,71 +7,78 @@ from pygame.locals import *
 import sys
 import math
 
-global screensize
-global zoom
-zoom=0.74
+screensize = (0,0)
+zoom = 0.74
+logging = False
+movement = True
+
+def log(string):
+    if logging:
+        print(string)
 
 class MeinSubskribierer:
     def on_connect_error(self,s):
-        print("on conn err"+s)
+        log("on conn err"+s)
 
     def on_sock_open(self):
-        print("on sock open")
+        log("on sock open")
 
     def on_sock_closed(self):
-        print("on sock closed")
+        log("on sock closed")
 
     def on_message_error(self,s):
-        print("on msg err "+s)
+        log("on msg err "+s)
 
     def on_ingame(self):
-        print("we're ingame :)")
+        log("we're ingame :)")
 
     def on_world_update_pre(self):
-        print("updatepre")
+        log("updatepre")
 
     def on_cell_eaten(self,eater_id, eaten_id):
-        print("%s ate %s" % (eater_id, eaten_id))
+        log("%s ate %s" % (eater_id, eaten_id))
 
     def on_death(self):
-        print("we died :(")
+        log("we died :(")
 
     def on_cell_removed(self,cid):
-        print("cell removed")
+        log("cell removed")
 
     def on_cell_info(self,cid, x,y, size, name, color, is_virus, is_agitated):
-        print("cell info")
+        log("cell info")
 
     def on_world_update_post(self):
-        print("updatepost")
+        log("updatepost")
 
     def on_leaderboard_names(self,leaderboard):
-        print("leaderboard names")
-        print(leaderboard)
+        #OAR WINDOWS
+        if sys.platform != "win32":
+            log("leaderboard names")
+            log(leaderboard)
 
     def on_leaderboard_groups(self,angles):
-        print("leaderboard groups")
+        log("leaderboard groups")
 
     def on_respawn(self):
-        print("respawned")
+        log("respawned")
 
     def on_own_id(self,cid):
-        print("my id is %i" % cid)
+        log("my id is %i" % cid)
 
     def on_world_rect(self,left,top,right,bottom):
-        print("worldrect %i,%i,%i,%i"%(left,top,right,bottom))
+        log("worldrect %i,%i,%i,%i"%(left,top,right,bottom))
 
     def on_spectate_update(self,pos, scale):
-        print("spect update")
+        log("spect update")
 
     def on_experience_info(self,level, current_xp, next_xp):
-        print("exper info")
+        log("exper info")
 
     def on_clear_cells(self):
-        print("clear cells")
+        log("clear cells")
 
     def on_debug_line(self,x,y):
-        print("debug line")
+        log("debug line")
 
 def calc_zoom():
     zoom1 = screensize[0] / 2051.
@@ -217,19 +224,37 @@ while True:
     draw_leaderboard()
     
     print(list(c.player.own_cells))
-   
+    
+    total_mass = 0
+    for cell in c.player.own_cells:
+        total_mass += cell.mass
+    
+    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + (" - MOVEMENT LOCKED" if not movement else ""))
+    
     mp=pygame.mouse.get_pos()
     print(mp)
 
     oldmb=mb
     mb = pygame.mouse.get_pressed()
-
-    c.send_target(*win_to_world_pt(mp, c.player.center))
+    
+    if movement:
+        c.send_target(*win_to_world_pt(mp, c.player.center))
 
     if mb[0] and not oldmb[0]:
         c.send_split()
     if mb[2] and not oldmb[2]:
         c.send_shoot()
-
+    
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                c.send_respawn()
+            if event.key == pygame.K_s:
+                global movement
+                movement = not movement
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+    
     pygame.display.update()
 
