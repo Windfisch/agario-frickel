@@ -1,7 +1,10 @@
 from agarnet.agarnet import client
 from agarnet.agarnet import utils
 import pygame
+from pygame import gfxdraw
+from pygame.locals import *
 import sys
+import math
 
 class MeinSubskribierer:
     def on_connect_error(self,s):
@@ -39,7 +42,7 @@ class MeinSubskribierer:
 
     def on_leaderboard_names(self,leaderboard):
         print("leaderboard names")
-        print(leaderboard)
+        #print(leaderboard)
 
     def on_leaderboard_groups(self,angles):
         print("leaderboard groups")
@@ -65,6 +68,46 @@ class MeinSubskribierer:
     def on_debug_line(self,x,y):
         print("debug line")
 
+def generateVirus(spikes, spike_length, radius, global_coords):
+    step = 2*math.pi / spikes*2
+    points = []
+    
+    for i in range(spikes*2):
+        if i%2 == 0:
+            t = (
+                int(math.sin(i*step)*radius+global_coords[0]),
+                int(math.cos(i*step)*radius+global_coords[1])
+            )
+        else:
+            t = (
+                int(math.sin(i*step)*(radius-spike_length)+global_coords[0]),
+                int(math.cos(i*step)*(radius-spike_length)+global_coords[1])
+            )
+        points.append(t);
+    return points
+
+def drawCell(cell):
+    cx = int((cell.pos[0]-c.player.center[0])/2+400)
+    cy = int((cell.pos[1]-c.player.center[1])/2+300)
+    
+    if cell.is_virus:
+            color = (0,255,0)
+            color2 = (100,255,0)
+            radius = int(cell.size/2)
+            polygon = generateVirus(100, 5, radius, (cx, cy))
+            
+            gfxdraw.aapolygon(screen, polygon, color)
+            gfxdraw.polygon(screen, polygon, color)
+            #gfxdraw.filled_polygon(screen, polygon, (0,0,0))
+    else:
+        color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
+        
+        gfxdraw.aacircle(screen, cx, cy, int(cell.size/2), color)
+        gfxdraw.filled_circle(screen, cx, cy, int(cell.size/2), color)
+        
+        if not (cell.is_ejected_mass or cell.is_food):
+            gfxdraw.aacircle(screen, cx, cy, int(cell.size/5), (255,255,255))
+            gfxdraw.circle(screen, cx, cy, int(cell.size/5), (255,255,255))
 
 sub = MeinSubskribierer()
 c = client.Client(sub)
@@ -82,10 +125,10 @@ print(c.is_connected)
 print(c.send_spectate())
 
 c.player.nick="Wyndfysch"
-#c.send_spectate()
+c.send_spectate()
 
 
-screen=pygame.display.set_mode((800,600))
+screen=pygame.display.set_mode((800,600),HWSURFACE|DOUBLEBUF)
 
 i=0
 
@@ -96,19 +139,13 @@ while True:
     if (i==10):
         c.send_respawn()
 
-    screen.fill((0,0,0))
+    screen.fill((255,255,255))
     print(c.on_message())
-
+    
+    gfxdraw.rectangle(screen, (c.world.top_left, c.world.bottom_right), (0,0,0));
+    
     for cell in c.world.cells.values():
-        if cell.is_virus:
-            color=(0,255,0)
-        elif cell.is_food:
-            color=(127,127,127)
-        elif cell.is_ejected_mass:
-            color=(255,255,255)
-        else:
-            color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
-        pygame.draw.circle(screen, color, (int((cell.pos[0]-c.player.center[0])/2+400), int((cell.pos[1]-c.player.center[1])/2+300)), int(cell.size/2))
+        drawCell(cell)
 
     print(list(c.player.own_cells))
    
