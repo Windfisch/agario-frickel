@@ -46,7 +46,7 @@ class MeinSubskribierer:
 
     def on_leaderboard_names(self,leaderboard):
         print("leaderboard names")
-        #print(leaderboard)
+        print(leaderboard)
 
     def on_leaderboard_groups(self,angles):
         print("leaderboard groups")
@@ -119,6 +119,20 @@ def drawCell(cell):
             surface = font.render(cell.name, 1, (0, 0, 0))
             screen.blit(surface, (cx - (surface.get_width()/2), cy + radius))
 
+def draw_leaderboard():
+    def filter(item): return item[1]
+    leaderboard = list(map(filter, c.world.leaderboard_names))
+    
+    font_size = 20
+    pygame.font.init()
+    font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
+    next_y = 0
+    
+    for i, s in zip(range(1, len(leaderboard)+1), leaderboard):
+        surface = font.render((str(i) + ": " +s), 1, (0, 0, 0))
+        screen.blit(surface, (0, next_y))
+        next_y += surface.get_height()
+
 sub = MeinSubskribierer()
 c = client.Client(sub)
 
@@ -168,7 +182,9 @@ while True:
     
     for cell in c.world.cells.values():
         drawCell(cell)
-
+    
+    draw_leaderboard()
+    
     print(list(c.player.own_cells))
    
     mp=pygame.mouse.get_pos()
