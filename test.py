@@ -115,6 +115,23 @@ def generateVirus(spikes, spike_length, radius, global_coords):
         points.append(t);
     return points
 
+def initializeFont():
+    try:
+        pygame.freetype.init()
+    except ImportError:
+        pygame.font.init()
+
+def drawText(text, color, font_size):
+    initializeFont()
+    try:
+        font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
+        output = font.render(text, color)
+        return output[0]
+    except ImportError:
+        font = pyggame.font.SysFont(pygame.freetype.get_default_font(), font_size)
+        output = font.render(text, 1, color)
+        return output
+
 def drawCell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     radius = world_to_win_length(cell.size)
@@ -138,28 +155,23 @@ def drawCell(cell):
             gfxdraw.circle(screen, cx, cy, int(radius/2.5), (255,255,255))
             
             font_size = 16
-            pygame.freetype.init()
-            font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
             
-            surface = font.render(cell.name, (0, 0, 0))
-            screen.blit(surface[0], (cx - (surface[0].get_width()/2), cy + radius + 5))
+            surface = drawText(cell.name, (0, 0, 0), font_size)
+            screen.blit(surface, (cx - (surface.get_width()/2), cy + radius + 5))
             
-            surface = font.render(str(int(cell.mass)), (255, 255, 255))
-            screen.blit(surface[0], (cx - (surface[0].get_width()/2), cy - (surface[0].get_height()/2)))
+            surface = drawText(str(int(cell.mass)), (255, 255, 255), font_size)
+            screen.blit(surface, (cx - (surface.get_width()/2), cy - (surface.get_height()/2)))
 
 def draw_leaderboard():
     def filter(item): return item[1]
     leaderboard = list(map(filter, c.world.leaderboard_names))
-    
-    font_size = 16
-    pygame.freetype.init()
-    font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
     next_y = 5
+    font_size = 16
     
     for i, s in zip(range(1, len(leaderboard)+1), leaderboard):
-        surface = font.render((str(i) + ": " +s), (0, 0, 0))
-        screen.blit(surface[0], (5, next_y))
-        next_y += surface[0].get_height()+5
+        surface = drawText((str(i) + ": " +s), (0, 0, 0), font_size)
+        screen.blit(surface, (5, next_y))
+        next_y += surface.get_height()+5
 
 sub = MeinSubskribierer()
 c = client.Client(sub)
