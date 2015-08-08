@@ -6,6 +6,7 @@ from pygame import freetype
 from pygame.locals import *
 import sys
 import math
+import time
 
 screensize = (0,0)
 zoom = 0.74
@@ -196,12 +197,15 @@ screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
 zoom = calc_zoom()
 i=0
 mb=pygame.mouse.get_pressed()
+last_time = time.time()
+fps = 0
+frame_counter = 0
 
 while True:
     pygame.event.pump()
     
     i=i+1
-    print(i)
+    # print(i)
     if (i==30):
         c.send_respawn()
 
@@ -214,7 +218,7 @@ while True:
     bottom = int((c.world.bottom_right[0] - c.player.center[1])*zoom + screensize[1]/2)
     right = int((c.world.bottom_right[1] - c.player.center[0])*zoom + screensize[0]/2)
     
-    print ((top,bottom,left,right))
+    # print ((top,bottom,left,right))
     if (top >= 0): gfxdraw.hline(screen, 0, screensize[0], top, (0,0,0))
     if (bottom <= screensize[1]): gfxdraw.hline(screen, 0, screensize[0], bottom, (0,0,0))
     if (left >= 0): gfxdraw.vline(screen, left, 0, screensize[1], (0,0,0))
@@ -225,16 +229,25 @@ while True:
     
     draw_leaderboard()
     
-    print(list(c.player.own_cells))
+    # print(list(c.player.own_cells))
     
     total_mass = 0
     for cell in c.player.own_cells:
         total_mass += cell.mass
     
-    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + (" - MOVEMENT LOCKED" if not movement else ""))
+    global fps, frame_counter, last_time
+    now = time.time()
+    if now - last_time >= 1.0:
+        fps = frame_counter
+        frame_counter = 0
+        last_time = now
+    else:
+        frame_counter += 1
+    
+    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(fps) + (" FPS - MOVEMENT LOCKED" if not movement else " FPS"))
     
     mp=pygame.mouse.get_pos()
-    print(mp)
+    # print(mp)
 
     oldmb=mb
     mb = pygame.mouse.get_pressed()
@@ -254,6 +267,8 @@ while True:
             screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
             zoom = calc_zoom()
             pygame.display.update()
+        if event.type==QUIT: 
+            pygame.display.quit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 c.send_respawn()
