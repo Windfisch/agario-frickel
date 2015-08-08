@@ -72,6 +72,23 @@ class MeinSubskribierer:
     def on_debug_line(self,x,y):
         print("debug line")
 
+def calc_zoom():
+    zoom1 = screensize[0] / 2051.
+    zoom2 = screensize[1] / 1216.
+    return max(zoom1,zoom2)
+
+def world_to_win_length(l):
+    return int(l*zoom)
+
+def win_to_world_length(l):
+    return int(l/zoom)
+
+def world_to_win_pt(pt,center):
+    return (int((pt[0]-center[0])*zoom + screensize[0]/2), int((pt[1]-center[1])*zoom + screensize[1]/2))
+
+def win_to_world_pt(pt,center):
+    return (int((pt[0]-screensize[0]/2)/zoom+center[0]), int((pt[1]-screensize[1]/2)/zoom+center[1]))
+
 def generateVirus(spikes, spike_length, radius, global_coords):
     step = (2*math.pi) / (spikes*2)
     points = []
@@ -91,9 +108,8 @@ def generateVirus(spikes, spike_length, radius, global_coords):
     return points
 
 def drawCell(cell):
-    cx = int((cell.pos[0]-c.player.center[0])*zoom +screensize[0]/2)
-    cy = int((cell.pos[1]-c.player.center[1])*zoom +screensize[1]/2)
-    radius = int(cell.size*zoom)
+    cx,cy = world_to_win_pt(cell.pos,c.player.center)
+    radius = world_to_win_length(cell.size)
 
     if cell.is_virus:
             color = (0,255,0)
@@ -171,8 +187,7 @@ while True:
     oldmb=mb
     mb = pygame.mouse.get_pressed()
 
-    
-    c.send_target(((mp[0]-screensize[0]/2)/zoom)+c.player.center[0],(mp[1]-screensize[1]/2)/zoom+c.player.center[1])
+    c.send_target(*win_to_world_pt(mp, c.player.center))
 
     if mb[0] and not oldmb[0]:
         c.send_split()
