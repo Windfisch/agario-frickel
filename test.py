@@ -118,7 +118,7 @@ def generateVirus(spikes, spike_length, radius, global_coords):
 def initializeFont():
     try:
         pygame.freetype.init()
-    except ImportError:
+    except:
         pygame.font.init()
 
 def drawText(text, color, font_size):
@@ -127,8 +127,8 @@ def drawText(text, color, font_size):
         font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
         output = font.render(text, color)
         return output[0]
-    except ImportError:
-        font = pyggame.font.SysFont(pygame.freetype.get_default_font(), font_size)
+    except:
+        font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
         output = font.render(text, 1, color)
         return output
 
