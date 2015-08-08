@@ -2,7 +2,10 @@ from agarnet.agarnet import client
 from agarnet.agarnet import utils
 import pygame
 from pygame import gfxdraw
-from pygame import freetype
+try:
+    from pygame import freetype
+except:
+    pass
 from pygame.locals import *
 import sys
 import math
