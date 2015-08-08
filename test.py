@@ -194,7 +194,17 @@ while True:
     
     c.on_message()
     
-    gfxdraw.rectangle(screen, (c.world.top_left, c.world.bottom_right), (0,0,0));
+
+    top = int((c.world.top_left[0] - c.player.center[1])*zoom + screensize[1]/2)
+    left = int((c.world.top_left[1] - c.player.center[0])*zoom + screensize[0]/2)
+    bottom = int((c.world.bottom_right[0] - c.player.center[1])*zoom + screensize[1]/2)
+    right = int((c.world.bottom_right[1] - c.player.center[0])*zoom + screensize[0]/2)
+
+    print ((top,bottom,left,right))
+    if (top >= 0): gfxdraw.hline(screen, 0, screensize[0], top, (0,0,0))
+    if (bottom <= screensize[1]): gfxdraw.hline(screen, 0, screensize[0], bottom, (0,0,0))
+    if (left >= 0): gfxdraw.vline(screen, left, 0, screensize[1], (0,0,0))
+    if (right <= screensize[0]): gfxdraw.vline(screen, right, 0, screensize[1], (0,0,0))
     
     for cell in c.world.cells.values():
         drawCell(cell)
