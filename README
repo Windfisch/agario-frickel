@@ -4,6 +4,8 @@ git submodule update --init
 python3 test.py
 
 move mouse  = move
-left click  = split
-right click = eject some mass
-
+left click, space  = split
+right click, w = eject some mass
+r = respawn
+s = lock movement
+esc = quit

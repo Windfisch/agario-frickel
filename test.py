@@ -246,9 +246,9 @@ while True:
     
     pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(fps) + (" FPS - MOVEMENT LOCKED" if not movement else " FPS"))
     
+    global mb
     mp=pygame.mouse.get_pos()
     # print(mp)
-
     oldmb=mb
     mb = pygame.mouse.get_pressed()
     
@@ -275,6 +275,10 @@ while True:
             if event.key == pygame.K_s:
                 global movement
                 movement = not movement
+            if event.key == pygame.K_w:
+                c.send_shoot()
+            if event.key == pygame.K_SPACE:
+                c.send_split()
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
     
