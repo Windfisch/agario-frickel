@@ -98,7 +98,7 @@ def drawCell(cell):
     if cell.is_virus:
             color = (0,255,0)
             color2 = (100,255,0)
-            polygon = generateVirus(int(cell.size*0.3), 5, radius, (cx, cy))
+            polygon = generateVirus(int(cell.size*0.3), 10*zoom, radius, (cx, cy))
             
             gfxdraw.filled_polygon(screen, polygon, color2)
             gfxdraw.aapolygon(screen, polygon, color)
@@ -133,10 +133,12 @@ c.send_spectate()
 
 screensize=(800,600)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+zoom = calc_zoom()
 
 i=0
 
 mb=pygame.mouse.get_pressed()
+
 while True:
     pygame.event.pump()
 
@@ -144,9 +146,7 @@ while True:
         if event.type==VIDEORESIZE:
             screensize = event.dict['size']
             screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
-            zoom1 = screensize[0] / 2051.
-            zoom2 = screensize[1] / 1216.
-            zoom = max(zoom1,zoom2)
+            zoom = calc_zoom()
             pygame.display.update()
     
     i=i+1
