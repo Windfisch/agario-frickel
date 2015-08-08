@@ -2,14 +2,17 @@ from agarnet.agarnet import client
 from agarnet.agarnet import utils
 import pygame
 from pygame import gfxdraw
-try:
-    from pygame import freetype
-except:
-    pass
 from pygame.locals import *
 import sys
 import math
 import time
+
+font_fallback = False
+try:
+    from pygame import freetype
+except:
+    global font_fallback
+    font_fallback = True
 
 screensize = (0,0)
 zoom = 0.74
@@ -119,22 +122,23 @@ def generateVirus(spikes, spike_length, radius, global_coords):
         points.append(t);
     return points
 
-def initializeFont():
-    try:
-        pygame.freetype.init()
-    except:
+def initializeFont():    
+    if font_fallback:
         pygame.font.init()
+    else:
+        pygame.freetype.init()
 
 def drawText(text, color, font_size):
     initializeFont()
-    try:
-        font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
-        output = font.render(text, color)
-        return output[0]
-    except:
+
+    if font_fallback:
         font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
         output = font.render(text, 1, color)
         return output
+    else:
+        font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
+        output = font.render(text, color)
+        return output[0]
 
 def drawCell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
