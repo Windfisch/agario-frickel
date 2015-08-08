@@ -6,6 +6,10 @@ from pygame.locals import *
 import sys
 import math
 
+global screensize
+global zoom
+zoom=0.74
+
 class MeinSubskribierer:
     def on_connect_error(self,s):
         print("on conn err"+s)
@@ -87,14 +91,14 @@ def generateVirus(spikes, spike_length, radius, global_coords):
     return points
 
 def drawCell(cell):
-    cx = int((cell.pos[0]-c.player.center[0])/2+400)
-    cy = int((cell.pos[1]-c.player.center[1])/2+300)
-    
+    cx = int((cell.pos[0]-c.player.center[0])*zoom +screensize[0]/2)
+    cy = int((cell.pos[1]-c.player.center[1])*zoom +screensize[1]/2)
+    radius = int(cell.size*zoom)
+
     if cell.is_virus:
             color = (0,255,0)
             color2 = (100,255,0)
-            radius = int(cell.size/2)
-            polygon = generateVirus(int(radius*0.6), 5, radius, (cx, cy))
+            polygon = generateVirus(int(cell.size*0.3), 5, radius, (cx, cy))
             
             gfxdraw.filled_polygon(screen, polygon, color2)
             gfxdraw.aapolygon(screen, polygon, color)
@@ -102,12 +106,12 @@ def drawCell(cell):
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
         
-        gfxdraw.aacircle(screen, cx, cy, int(cell.size/2), color)
-        gfxdraw.filled_circle(screen, cx, cy, int(cell.size/2), color)
+        gfxdraw.aacircle(screen, cx, cy, radius, color)
+        gfxdraw.filled_circle(screen, cx, cy, radius, color)
         
         if not (cell.is_ejected_mass or cell.is_food):
-            gfxdraw.aacircle(screen, cx, cy, int(cell.size/5), (255,255,255))
-            gfxdraw.circle(screen, cx, cy, int(cell.size/5), (255,255,255))
+            gfxdraw.aacircle(screen, cx, cy, int(radius/2.5), (255,255,255))
+            gfxdraw.circle(screen, cx, cy, int(radius/2.5), (255,255,255))
 
 sub = MeinSubskribierer()
 c = client.Client(sub)
@@ -127,20 +131,32 @@ print(c.send_spectate())
 c.player.nick="Wyndfysch"
 c.send_spectate()
 
-
-screen=pygame.display.set_mode((800,600),HWSURFACE|DOUBLEBUF)
+screensize=(800,600)
+screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
 
 i=0
 
 mb=pygame.mouse.get_pressed()
 while True:
+    pygame.event.pump()
+
+    for event in pygame.event.get():
+        if event.type==VIDEORESIZE:
+            screensize = event.dict['size']
+            screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+            zoom1 = screensize[0] / 2051.
+            zoom2 = screensize[1] / 1216.
+            zoom = max(zoom1,zoom2)
+            pygame.display.update()
+    
     i=i+1
     print(i)
-    if (i==10):
+    if (i==30):
         c.send_respawn()
 
     screen.fill((255,255,255))
-    print(c.on_message())
+    
+    c.on_message()
     
     gfxdraw.rectangle(screen, (c.world.top_left, c.world.bottom_right), (0,0,0));
     
@@ -150,14 +166,13 @@ while True:
     print(list(c.player.own_cells))
    
     mp=pygame.mouse.get_pos()
-    pygame.event.poll()
     print(mp)
 
     oldmb=mb
     mb = pygame.mouse.get_pressed()
 
     
-    c.send_target(((mp[0]-400)*2)+c.player.center[0],(mp[1]-300)*2+c.player.center[1])
+    c.send_target(((mp[0]-screensize[0]/2)/zoom)+c.player.center[0],(mp[1]-screensize[1]/2)/zoom+c.player.center[1])
 
     if mb[0] and not oldmb[0]:
         c.send_split()
