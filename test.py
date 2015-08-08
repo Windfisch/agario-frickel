@@ -2,6 +2,7 @@ from agarnet.agarnet import client
 from agarnet.agarnet import utils
 import pygame
 from pygame import gfxdraw
+from pygame import freetype
 from pygame.locals import *
 import sys
 import math
@@ -129,25 +130,29 @@ def drawCell(cell):
             gfxdraw.aacircle(screen, cx, cy, int(radius/2.5), (255,255,255))
             gfxdraw.circle(screen, cx, cy, int(radius/2.5), (255,255,255))
             
-            font_size = 20
-            pygame.font.init()
-            font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
-            surface = font.render(cell.name, 1, (0, 0, 0))
-            screen.blit(surface, (cx - (surface.get_width()/2), cy + radius))
+            font_size = 16
+            pygame.freetype.init()
+            font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
+            
+            surface = font.render(cell.name, (0, 0, 0))
+            screen.blit(surface[0], (cx - (surface[0].get_width()/2), cy + radius + 5))
+            
+            surface = font.render(str(int(cell.mass)), (255, 255, 255))
+            screen.blit(surface[0], (cx - (surface[0].get_width()/2), cy - (surface[0].get_height()/2)))
 
 def draw_leaderboard():
     def filter(item): return item[1]
     leaderboard = list(map(filter, c.world.leaderboard_names))
     
-    font_size = 20
-    pygame.font.init()
-    font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
-    next_y = 0
+    font_size = 16
+    pygame.freetype.init()
+    font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
+    next_y = 5
     
     for i, s in zip(range(1, len(leaderboard)+1), leaderboard):
-        surface = font.render((str(i) + ": " +s), 1, (0, 0, 0))
-        screen.blit(surface, (0, next_y))
-        next_y += surface.get_height()
+        surface = font.render((str(i) + ": " +s), (0, 0, 0))
+        screen.blit(surface[0], (5, next_y))
+        next_y += surface[0].get_height()+5
 
 sub = MeinSubskribierer()
 c = client.Client(sub)
