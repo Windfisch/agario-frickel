@@ -69,7 +69,7 @@ class MeinSubskribierer:
         print("debug line")
 
 def generateVirus(spikes, spike_length, radius, global_coords):
-    step = 2*math.pi / spikes*2
+    step = (2*math.pi) / (spikes*2)
     points = []
     
     for i in range(spikes*2):
@@ -94,11 +94,11 @@ def drawCell(cell):
             color = (0,255,0)
             color2 = (100,255,0)
             radius = int(cell.size/2)
-            polygon = generateVirus(100, 5, radius, (cx, cy))
+            polygon = generateVirus(int(radius*0.6), 5, radius, (cx, cy))
             
+            gfxdraw.filled_polygon(screen, polygon, color2)
             gfxdraw.aapolygon(screen, polygon, color)
             gfxdraw.polygon(screen, polygon, color)
-            #gfxdraw.filled_polygon(screen, polygon, (0,0,0))
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
         
