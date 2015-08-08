@@ -112,6 +112,12 @@ def drawCell(cell):
         if not (cell.is_ejected_mass or cell.is_food):
             gfxdraw.aacircle(screen, cx, cy, int(radius/2.5), (255,255,255))
             gfxdraw.circle(screen, cx, cy, int(radius/2.5), (255,255,255))
+            
+            font_size = 20
+            pygame.font.init()
+            font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
+            surface = font.render(cell.name, 1, (0, 0, 0))
+            screen.blit(surface, (cx - (surface.get_width()/2), cy + radius))
 
 sub = MeinSubskribierer()
 c = client.Client(sub)
@@ -128,7 +134,7 @@ c.send_facebook(
 print(c.is_connected)
 print(c.send_spectate())
 
-c.player.nick="Wyndfysch"
+c.player.nick="test cell pls ignore"
 c.send_spectate()
 
 screensize=(800,600)
