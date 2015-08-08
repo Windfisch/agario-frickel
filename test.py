@@ -194,20 +194,11 @@ c.send_spectate()
 screensize=(800,600)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
 zoom = calc_zoom()
-
 i=0
-
 mb=pygame.mouse.get_pressed()
 
 while True:
     pygame.event.pump()
-
-    for event in pygame.event.get():
-        if event.type==VIDEORESIZE:
-            screensize = event.dict['size']
-            screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
-            zoom = calc_zoom()
-            pygame.display.update()
     
     i=i+1
     print(i)
@@ -216,14 +207,13 @@ while True:
 
     screen.fill((255,255,255))
     
-    c.on_message()
+    c.on_message()  
     
-
     top = int((c.world.top_left[0] - c.player.center[1])*zoom + screensize[1]/2)
     left = int((c.world.top_left[1] - c.player.center[0])*zoom + screensize[0]/2)
     bottom = int((c.world.bottom_right[0] - c.player.center[1])*zoom + screensize[1]/2)
     right = int((c.world.bottom_right[1] - c.player.center[0])*zoom + screensize[0]/2)
-
+    
     print ((top,bottom,left,right))
     if (top >= 0): gfxdraw.hline(screen, 0, screensize[0], top, (0,0,0))
     if (bottom <= screensize[1]): gfxdraw.hline(screen, 0, screensize[0], bottom, (0,0,0))
@@ -259,6 +249,11 @@ while True:
     
     events = pygame.event.get()
     for event in events:
+        if event.type==VIDEORESIZE:
+            screensize = event.dict['size']
+            screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+            zoom = calc_zoom()
+            pygame.display.update()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 c.send_respawn()
@@ -269,4 +264,3 @@ while True:
                 pygame.quit()
     
     pygame.display.update()
-
