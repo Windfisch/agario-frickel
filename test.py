@@ -125,7 +125,7 @@ def generateVirus(spikes, spike_length, radius, global_coords):
         points.append(t);
     return points
 
-def initializeFont():    
+def initializeFont():
     if font_fallback:
         pygame.font.init()
     else:
@@ -184,6 +184,17 @@ def draw_leaderboard():
         screen.blit(surface, (5, next_y))
         next_y += surface.get_height()+5
 
+def draw_world_borders():
+    top = int((c.world.top_left[0] - c.player.center[1])*zoom + screensize[1]/2)
+    left = int((c.world.top_left[1] - c.player.center[0])*zoom + screensize[0]/2)
+    bottom = int((c.world.bottom_right[0] - c.player.center[1])*zoom + screensize[1]/2)
+    right = int((c.world.bottom_right[1] - c.player.center[0])*zoom + screensize[0]/2)
+    
+    if (top >= 0): gfxdraw.hline(screen, 0, screensize[0], top, (0,0,0))
+    if (bottom <= screensize[1]): gfxdraw.hline(screen, 0, screensize[0], bottom, (0,0,0))
+    if (left >= 0): gfxdraw.vline(screen, left, 0, screensize[1], (0,0,0))
+    if (right <= screensize[0]): gfxdraw.vline(screen, right, 0, screensize[1], (0,0,0))
+
 sub = MeinSubskribierer()
 c = client.Client(sub)
 
@@ -209,19 +220,11 @@ zoom = calc_zoom()
 while True:
     pygame.event.pump()
     clock.tick()
-    screen.fill((255,255,255))
-    
     c.on_message()
+
     
-    top = int((c.world.top_left[0] - c.player.center[1])*zoom + screensize[1]/2)
-    left = int((c.world.top_left[1] - c.player.center[0])*zoom + screensize[0]/2)
-    bottom = int((c.world.bottom_right[0] - c.player.center[1])*zoom + screensize[1]/2)
-    right = int((c.world.bottom_right[1] - c.player.center[0])*zoom + screensize[0]/2)
-    
-    if (top >= 0): gfxdraw.hline(screen, 0, screensize[0], top, (0,0,0))
-    if (bottom <= screensize[1]): gfxdraw.hline(screen, 0, screensize[0], bottom, (0,0,0))
-    if (left >= 0): gfxdraw.vline(screen, left, 0, screensize[1], (0,0,0))
-    if (right <= screensize[0]): gfxdraw.vline(screen, right, 0, screensize[1], (0,0,0))
+    screen.fill((255,255,255))
+    draw_world_borders() 
     
     for cell in c.world.cells.values():
         drawCell(cell)
@@ -262,4 +265,5 @@ while True:
         if event.type == MOUSEMOTION:
             if movement:
                 c.send_target(*win_to_world_pt(event.pos, c.player.center))
+    
     pygame.display.update()
