@@ -158,12 +158,12 @@ def drawCell(cell):
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
         
-        gfxdraw.aacircle(screen, cx, cy, radius, color)
-        gfxdraw.filled_circle(screen, cx, cy, radius, color)
-        
         if not (cell.is_ejected_mass or cell.is_food):
-            gfxdraw.aacircle(screen, cx, cy, int(radius/2.5), (255,255,255))
-            gfxdraw.circle(screen, cx, cy, int(radius/2.5), (255,255,255))
+            gfxdraw.filled_circle(screen, cx, cy, radius, color)
+            gfxdraw.aacircle(screen, cx, cy, radius, (0,0,0))
+            
+            gfxdraw.aacircle(screen, cx, cy, int(radius/2), (255,255,255))
+            gfxdraw.circle(screen, cx, cy, int(radius/2), (255,255,255))
             
             font_size = 16
             
@@ -172,7 +172,9 @@ def drawCell(cell):
             
             surface = drawText(str(int(cell.mass)), (255, 255, 255), font_size)
             screen.blit(surface, (cx - (surface.get_width()/2), cy - (surface.get_height()/2)))
-
+        else:
+            gfxdraw.aacircle(screen, cx, cy, radius, color)
+            gfxdraw.filled_circle(screen, cx, cy, radius, color)
 def draw_leaderboard():
     def filter(item): return item[1]
     leaderboard = list(map(filter, c.world.leaderboard_names))
