@@ -113,7 +113,7 @@ def set_client(cl):
     global c
     c=cl
 
-def tick():
+def draw_frame():
     global screen
     global movement
 

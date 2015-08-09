@@ -36,4 +36,4 @@ gui.set_client(c)
 # main loop
 while True:
     c.on_message()
-    gui.tick()
+    gui.draw_frame()
