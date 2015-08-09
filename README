@@ -1,7 +1,7 @@
 prerequisites: python3, pygame and websocket-client
 
 git submodule update --init
-python3 test.py
+python3 main.py
 
 move mouse  = move
 left click, space  = split
