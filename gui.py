@@ -7,88 +7,7 @@ import sys
 import math
 import time
 
-global font_fallback
-font_fallback = False
-try:
-    from pygame import freetype
-except:
-    font_fallback = True
 
-screensize = (0,0)
-zoom = 0.74
-logging = False
-
-global movement
-movement = True
-clock = pygame.time.Clock()
-
-def log(string):
-    if logging:
-        print(string)
-
-class MeinSubskribierer:
-    def on_connect_error(self,s):
-        log("on conn err"+s)
-
-    def on_sock_open(self):
-        log("on sock open")
-
-    def on_sock_closed(self):
-        log("on sock closed")
-
-    def on_message_error(self,s):
-        log("on msg err "+s)
-
-    def on_ingame(self):
-        log("we're ingame :)")
-
-    def on_world_update_pre(self):
-        log("updatepre")
-
-    def on_cell_eaten(self,eater_id, eaten_id):
-        log("%s ate %s" % (eater_id, eaten_id))
-
-    def on_death(self):
-        log("we died :(")
-
-    def on_cell_removed(self,cid):
-        log("cell removed")
-
-    def on_cell_info(self,cid, x,y, size, name, color, is_virus, is_agitated):
-        log("cell info")
-
-    def on_world_update_post(self):
-        log("updatepost")
-
-    def on_leaderboard_names(self,leaderboard):
-        #OAR WINDOWS
-        if sys.platform != "win32":
-            log("leaderboard names")
-            log(leaderboard)
-
-    def on_leaderboard_groups(self,angles):
-        log("leaderboard groups")
-
-    def on_respawn(self):
-        log("respawned")
-
-    def on_own_id(self,cid):
-        log("my id is %i" % cid)
-
-    def on_world_rect(self,left,top,right,bottom):
-        log("worldrect %i,%i,%i,%i"%(left,top,right,bottom))
-
-    def on_spectate_update(self,pos, scale):
-        log("spect update")
-
-    def on_experience_info(self,level, current_xp, next_xp):
-        log("exper info")
-
-    def on_clear_cells(self):
-        log("clear cells")
-
-    def on_debug_line(self,x,y):
-        log("debug line")
 
 def calc_zoom():
     zoom1 = screensize[0] / 2051.
@@ -125,15 +44,8 @@ def generateVirus(spikes, spike_length, radius, global_coords):
         points.append(t);
     return points
 
-def initializeFont():
-    if font_fallback:
-        pygame.font.init()
-    else:
-        pygame.freetype.init()
 
 def drawText(text, color, font_size):
-    initializeFont()
-
     if font_fallback:
         font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
         output = font.render(text, 1, color)
@@ -197,32 +109,16 @@ def draw_world_borders():
     if (left >= 0): gfxdraw.vline(screen, left, 0, screensize[1], (0,0,0))
     if (right <= screensize[0]): gfxdraw.vline(screen, right, 0, screensize[1], (0,0,0))
 
-sub = MeinSubskribierer()
-c = client.Client(sub)
+def set_client(cl):
+    global c
+    c=cl
 
-try:
-    token = sys.argv[1]
-    addr, *_ = utils.get_party_address(token)
-except:
-    addr, token, *_ = utils.find_server()
+def tick():
+    global screen
+    global movement
 
-c.connect(addr,token)
-c.send_facebook(
-            'g2gDYQFtAAAAEKO6L3c8C8/eXtbtbVJDGU5tAAAAUvOo7JuWAVSczT5Aj0eo0CvpeU8ijGzKy/gXBVCxhP5UO+ERH0jWjAo9bU1V7dU0GmwFr+SnzqWohx3qvG8Fg8RHlL17/y9ifVWpYUdweuODb9c=')
-print(c.is_connected)
-print(c.send_spectate())
-
-c.player.nick="test cell pls ignore"
-c.send_spectate()
-
-screensize=(800,600)
-screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
-zoom = calc_zoom()
-
-while True:
     pygame.event.pump()
     clock.tick()
-    c.on_message()
 
     
     screen.fill((255,255,255))
@@ -269,3 +165,29 @@ while True:
                 c.send_target(*win_to_world_pt(event.pos, c.player.center))
     
     pygame.display.update()
+
+
+
+
+
+font_fallback = False
+try:
+    from pygame import freetype
+except:
+    font_fallback = True
+
+if font_fallback:
+    pygame.font.init()
+else:
+    pygame.freetype.init()
+
+
+logging = False
+
+
+movement = True
+clock = pygame.time.Clock()
+
+screensize=(800,600)
+screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+zoom = calc_zoom()
