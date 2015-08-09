@@ -26,7 +26,7 @@ def world_to_win_pt(pt,center):
 def win_to_world_pt(pt,center):
     return (int((pt[0]-screensize[0]/2)/zoom+center[0]), int((pt[1]-screensize[1]/2)/zoom+center[1]))
 
-def generateVirus(spikes, spike_length, radius, global_coords):
+def generate_virus(spikes, spike_length, radius, global_coords):
     step = (2*math.pi) / (spikes*2)
     points = []
     
@@ -45,7 +45,7 @@ def generateVirus(spikes, spike_length, radius, global_coords):
     return points
 
 
-def drawText(text, color, font_size):
+def draw_text(text, color, font_size):
     if font_fallback:
         font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
         output = font.render(text, 1, color)
@@ -55,14 +55,14 @@ def drawText(text, color, font_size):
         output = font.render(text, color)
         return output[0]
 
-def drawCell(cell):
+def draw_cell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     radius = world_to_win_length(cell.size)
 
     if cell.is_virus:
             color = (0,255,0)
             color2 = (100,255,0)
-            polygon = generateVirus(int(cell.size*0.3), 10*zoom, radius, (cx, cy))
+            polygon = generate_virus(int(cell.size*0.3), 10*zoom, radius, (cx, cy))
             
             gfxdraw.filled_polygon(screen, polygon, color2)
             gfxdraw.aapolygon(screen, polygon, color)
@@ -79,10 +79,10 @@ def drawCell(cell):
             
             font_size = 16
             
-            surface = drawText(cell.name, (0, 0, 0), font_size)
+            surface = draw_text(cell.name, (0, 0, 0), font_size)
             screen.blit(surface, (cx - (surface.get_width()/2), cy + radius + 5))
             
-            surface = drawText(str(int(cell.mass)), (255, 255, 255), font_size)
+            surface = draw_text(str(int(cell.mass)), (255, 255, 255), font_size)
             screen.blit(surface, (cx - (surface.get_width()/2), cy - (surface.get_height()/2)))
         else:
             gfxdraw.aacircle(screen, cx, cy, radius, color)
@@ -94,7 +94,7 @@ def draw_leaderboard():
     font_size = 16
     
     for i, s in zip(range(1, len(leaderboard)+1), leaderboard):
-        surface = drawText((str(i) + ": " +s), (0, 0, 0), font_size)
+        surface = draw_text((str(i) + ": " +s), (0, 0, 0), font_size)
         screen.blit(surface, (5, next_y))
         next_y += surface.get_height()+5
 
@@ -125,7 +125,7 @@ def tick():
     draw_world_borders() 
     
     for cell in c.world.cells.values():
-        drawCell(cell)
+        draw_cell(cell)
     
     draw_leaderboard()
     
