@@ -116,6 +116,8 @@ def set_client(cl):
 def draw_frame():
     global screen
     global movement
+    global zoom
+    global screensize
 
     pygame.event.pump()
     clock.tick()
