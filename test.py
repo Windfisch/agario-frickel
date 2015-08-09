@@ -18,6 +18,7 @@ screensize = (0,0)
 zoom = 0.74
 logging = False
 movement = True
+clock = pygame.time.Clock()
 
 def log(string):
     if logging:
@@ -203,13 +204,10 @@ screensize=(800,600)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
 zoom = calc_zoom()
 i=0
-mb=pygame.mouse.get_pressed()
-last_time = time.time()
-fps = 0
-frame_counter = 0
 
 while True:
     pygame.event.pump()
+    clock.tick()
     
     i=i+1
     # print(i)
@@ -242,51 +240,35 @@ while True:
     for cell in c.player.own_cells:
         total_mass += cell.mass
     
-    global fps, frame_counter, last_time
-    now = time.time()
-    if now - last_time >= 1.0:
-        fps = frame_counter
-        frame_counter = 0
-        last_time = now
-    else:
-        frame_counter += 1
-    
-    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(fps) + (" FPS - MOVEMENT LOCKED" if not movement else " FPS"))
-    
-    global mb
-    mp=pygame.mouse.get_pos()
-    # print(mp)
-    oldmb=mb
-    mb = pygame.mouse.get_pressed()
-    
-    if movement:
-        c.send_target(*win_to_world_pt(mp, c.player.center))
-
-    if mb[0] and not oldmb[0]:
-        c.send_split()
-    if mb[2] and not oldmb[2]:
-        c.send_shoot()
+    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - MOVEMENT LOCKED" if not movement else " FPS"))
     
     events = pygame.event.get()
     for event in events:
-        if event.type==VIDEORESIZE:
+        if event.type == VIDEORESIZE:
             screensize = event.dict['size']
-            screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+            screen=pygame.display.set_mode(screensize, HWSURFACE|DOUBLEBUF|RESIZABLE)
             zoom = calc_zoom()
             pygame.display.update()
-        if event.type==QUIT: 
+        if event.type == QUIT: 
             pygame.display.quit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_r:
+        if event.type == KEYDOWN:
+            if event.key == K_r:
                 c.send_respawn()
-            if event.key == pygame.K_s:
+            if event.key == K_s:
                 global movement
                 movement = not movement
-            if event.key == pygame.K_w:
+            if event.key == K_w:
                 c.send_shoot()
-            if event.key == pygame.K_SPACE:
+            if event.key == K_SPACE:
                 c.send_split()
-            if event.key == pygame.K_ESCAPE:
+            if event.key == K_ESCAPE:
                 pygame.quit()
-    
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                c.send_split()
+            if event.button == 3:
+                c.send_shoot()
+        if event.type == MOUSEMOTION:
+            if movement:
+                c.send_target(*win_to_world_pt(event.pos, c.player.center))
     pygame.display.update()
