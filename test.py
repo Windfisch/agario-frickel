@@ -7,16 +7,18 @@ import sys
 import math
 import time
 
+global font_fallback
 font_fallback = False
 try:
     from pygame import freetype
 except:
-    global font_fallback
     font_fallback = True
 
 screensize = (0,0)
 zoom = 0.74
 logging = False
+
+global movement
 movement = True
 clock = pygame.time.Clock()
 
@@ -245,7 +247,6 @@ while True:
             if event.key == K_r:
                 c.send_respawn()
             if event.key == K_s:
-                global movement
                 movement = not movement
             if event.key == K_w:
                 c.send_shoot()
