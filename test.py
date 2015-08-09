@@ -203,27 +203,19 @@ c.send_spectate()
 screensize=(800,600)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
 zoom = calc_zoom()
-i=0
 
 while True:
     pygame.event.pump()
     clock.tick()
-    
-    i=i+1
-    # print(i)
-    if (i==30):
-        c.send_respawn()
-
     screen.fill((255,255,255))
     
-    c.on_message()  
+    c.on_message()
     
     top = int((c.world.top_left[0] - c.player.center[1])*zoom + screensize[1]/2)
     left = int((c.world.top_left[1] - c.player.center[0])*zoom + screensize[0]/2)
     bottom = int((c.world.bottom_right[0] - c.player.center[1])*zoom + screensize[1]/2)
     right = int((c.world.bottom_right[1] - c.player.center[0])*zoom + screensize[0]/2)
     
-    # print ((top,bottom,left,right))
     if (top >= 0): gfxdraw.hline(screen, 0, screensize[0], top, (0,0,0))
     if (bottom <= screensize[1]): gfxdraw.hline(screen, 0, screensize[0], bottom, (0,0,0))
     if (left >= 0): gfxdraw.vline(screen, left, 0, screensize[1], (0,0,0))
@@ -233,8 +225,6 @@ while True:
         drawCell(cell)
     
     draw_leaderboard()
-    
-    # print(list(c.player.own_cells))
     
     total_mass = 0
     for cell in c.player.own_cells:
