@@ -7,6 +7,24 @@ import sys
 import math
 import time
 
+font_fallback = False
+try:
+    from pygame import freetype
+except:
+    font_fallback = True
+
+if font_fallback:
+    pygame.font.init()
+else:
+    pygame.freetype.init()
+
+logging = False
+input = False
+clock = pygame.time.Clock()
+
+screensize=(800,600)
+screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+    
 def debug_line(p1,p2,col):
     global screen
     pygame.draw.line(screen, col, world_to_win_pt(p1, c.player.center), world_to_win_pt(p2, c.player.center))
@@ -19,6 +37,8 @@ def calc_zoom():
     zoom2 = screensize[1] / 1216.
     return max(zoom1,zoom2)
 
+zoom = calc_zoom()
+    
 def world_to_win_length(l):
     return int(l*zoom)
 
@@ -48,7 +68,6 @@ def generate_virus(spikes, spike_length, radius, global_coords):
             )
         points.append(t);
     return points
-
 
 def draw_text(text, color, font_size):
     if font_fallback:
@@ -124,15 +143,11 @@ def set_client(cl):
     c=cl
 
 def draw_frame():
-    global screen
-    global movement
-    global zoom
-    global screensize
+    global screen, movement, zoom, screensize, input
 
     pygame.event.pump()
     clock.tick()
-
-    
+  
     screen.fill((255,255,255))
     draw_world_borders() 
     
@@ -145,7 +160,7 @@ def draw_frame():
     for cell in c.player.own_cells:
         total_mass += cell.mass
     
-    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - MOVEMENT LOCKED" if not movement else " FPS"))
+    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - INPUT LOCKED" if not input else " FPS"))
     
     events = pygame.event.get()
     for event in events:
@@ -157,49 +172,24 @@ def draw_frame():
         if event.type == QUIT: 
             pygame.display.quit()
         if event.type == KEYDOWN:
-            if event.key == K_r:
-                c.send_respawn()
             if event.key == K_s:
-                movement = not movement
-            if event.key == K_w:
-                c.send_shoot()
-            if event.key == K_SPACE:
-                c.send_split()
+                input = not input
             if event.key == K_ESCAPE:
                 pygame.quit()
-        if event.type == MOUSEBUTTONDOWN:
-            if event.button == 1:
-                c.send_split()
-            if event.button == 3:
-                c.send_shoot()
-        if event.type == MOUSEMOTION:
-            if movement:
-                c.send_target(*win_to_world_pt(event.pos, c.player.center))
+            if event.key == K_r:
+                c.send_respawn()
+        if input:    
+            if event.type == KEYDOWN:
+                if event.key == K_w:
+                    c.send_shoot()
+                if event.key == K_SPACE:
+                    c.send_split()
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    c.send_split()
+                if event.button == 3:
+                    c.send_shoot()
+            if event.type == MOUSEMOTION:
+                    c.send_target(*win_to_world_pt(event.pos, c.player.center))
     
     pygame.display.update()
-
-
-
-
-
-font_fallback = False
-try:
-    from pygame import freetype
-except:
-    font_fallback = True
-
-if font_fallback:
-    pygame.font.init()
-else:
-    pygame.freetype.init()
-
-
-logging = False
-
-
-movement = True
-clock = pygame.time.Clock()
-
-screensize=(800,600)
-screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
-zoom = calc_zoom()

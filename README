@@ -7,5 +7,5 @@ move mouse  = move
 left click, space  = split
 right click, w = eject some mass
 r = respawn
-s = lock movement
+s = lock input
 esc = quit
