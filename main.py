@@ -6,13 +6,15 @@ from pygame.locals import *
 import sys
 import math
 import time
-import gui
 import random
+import gui
+import stats
 from subscriber import DummySubscriber
 
+# global vars
 sub = DummySubscriber()
 c = client.Client(sub)
-
+stats = stats.Stats()
 
 # find out server and token to connect
 try:
@@ -26,13 +28,12 @@ c.connect(addr,token)
 c.send_facebook(
             'g2gDYQFtAAAAEKO6L3c8C8/eXtbtbVJDGU5tAAAAUvOo7JuWAVSczT5Aj0eo0CvpeU8ijGzKy/gXBVCxhP5UO+ERH0jWjAo9bU1V7dU0GmwFr+SnzqWohx3qvG8Fg8RHlL17/y9ifVWpYUdweuODb9c=')
 
-c.player.nick="test cell pls ignore"
+#c.player.nick="test cell pls ignore"
 c.send_spectate()
 
 
 # initialize GUI
 gui.set_client(c)
-
 
 # main loop
 while True:
@@ -49,7 +50,6 @@ while True:
             if dist < cell.size*4 and  cell.mass > 1.25 * my_smallest:
                 runaway_x += (c.player.center[0] - cell.pos[0]) / cell.mass / dist
                 runaway_y += (c.player.center[1] - cell.pos[1]) / cell.mass / dist
-
         
         runaway_r = math.sqrt(runaway_x**2 + runaway_y**2)
         if (runaway_r > 0):
@@ -76,3 +76,6 @@ while True:
                 gui.debug_line(c.player.center, (rx, ry),(0,255,0))
                 gui.update()  
                 print("Nothing to do, heading to random destination: " + str((rx, ry)))
+        
+        stats.log_pos(c.player.center)
+        stats.log_mass(c.player.total_mass)
