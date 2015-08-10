@@ -68,10 +68,14 @@ def draw_cell(cell):
             color = (0,255,0)
             color2 = (100,255,0)
             polygon = generate_virus(int(cell.size*0.3), 10*zoom, radius, (cx, cy))
+            polygon2 = generate_virus(int(cell.size*0.3), 10*zoom, radius-10, (cx, cy))
             
             gfxdraw.filled_polygon(screen, polygon, color2)
-            gfxdraw.aapolygon(screen, polygon, color)
-            gfxdraw.polygon(screen, polygon, color)
+            gfxdraw.polygon(screen, polygon, (0,0,0))
+            gfxdraw.aapolygon(screen, polygon, (0,0,0))
+            
+            gfxdraw.filled_polygon(screen, polygon2, color)
+            gfxdraw.aapolygon(screen, polygon2, color)
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
         
