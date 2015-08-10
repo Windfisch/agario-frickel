@@ -60,7 +60,7 @@ while True:
             gui.debug_line(c.player.center, (runaway_x,runaway_y),(255,0,0))
             gui.update()
         else:
-            food = list(filter(lambda x: x.is_food or x.mass <= sorted(c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75, c.world.cells.values()))
+            food = list(filter(lambda x: x.is_food or x.mass <= sorted(c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75 and not x.is_virus, c.world.cells.values()))
             def dist(cell): return math.sqrt((cell.pos[0]-c.player.center[0])**2 + (cell.pos[1]-c.player.center[1])**2)
             food = sorted(food, key = dist)
             
