@@ -7,7 +7,12 @@ import sys
 import math
 import time
 
+def debug_line(p1,p2,col):
+    global screen
+    pygame.draw.line(screen, col, world_to_win_pt(p1, c.player.center), world_to_win_pt(p2, c.player.center))
 
+def update():
+    pygame.display.update()
 
 def calc_zoom():
     zoom1 = screensize[0] / 2051.
@@ -87,6 +92,7 @@ def draw_cell(cell):
         else:
             gfxdraw.aacircle(screen, cx, cy, radius, color)
             gfxdraw.filled_circle(screen, cx, cy, radius, color)
+
 def draw_leaderboard():
     def filter(item): return item[1]
     leaderboard = list(map(filter, c.world.leaderboard_names))
