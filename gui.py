@@ -22,7 +22,7 @@ logging = False
 input = False
 clock = pygame.time.Clock()
 
-screensize=(800,600)
+screensize=(1280, 720)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
     
 def debug_line(p1,p2,col):
