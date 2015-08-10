@@ -25,9 +25,36 @@ clock = pygame.time.Clock()
 screensize=(1280, 720)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
     
-def debug_line(p1,p2,col):
+def debug_line(p1, p2, color):
     global screen
-    pygame.draw.line(screen, col, world_to_win_pt(p1, c.player.center), world_to_win_pt(p2, c.player.center))
+    p1win = world_to_win_pt(p1, c.player.center)
+    p2win = world_to_win_pt(p2, c.player.center)
+    gfxdraw.line(screen, p1win[0], p1win[1], p2win[0], p2win[1], color)
+
+def debug_box(rect, color, filled=False):
+    if filled:
+        screen.fill(color, rect)
+    else:
+        gfxdraw.rectangle(screen, rect, color)
+
+def debug_circle(pos, r, color, filled=False):
+    if filled:
+        gfxdraw.filled_circle(screen, pos[0], pos[1], r, color)
+    else:
+        gfxdraw.circle(screen, pos[0], pos[1], r, color)
+    gfxdraw.aacircle(screen, pos[0], pos[1], r, color)
+
+def debug_polygon(polygon, color, filled=False):
+    polygon = list(map(lambda x: world_to_win_pt(x, c.player.center), polygon))
+    if filled:
+        gfxdraw.filled_polygon(screen, polygon, color)
+    else:
+        gfxdraw.polygon(screen, polygon, color)
+    gfxdraw.aapolygon(screen, polygon, color)
+
+def debug_path(path, color):
+    for i in range(1, len(path)):
+        debug_line(path[i-1], path[i], color)
 
 def update():
     pygame.display.update()
