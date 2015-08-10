@@ -56,7 +56,7 @@ while True:
             runaway_x, runaway_y = (c.player.center[0]+int(100*runaway_x / runaway_r)), (c.player.center[1]+int(100*runaway_y / runaway_r))
             
             c.send_target(runaway_x, runaway_y)
-            print (str((runaway_x-c.player.center[0], runaway_y-c.player.center[1])))
+            print ("Running away: " + str((runaway_x-c.player.center[0], runaway_y-c.player.center[1])))
             gui.debug_line(c.player.center, (runaway_x,runaway_y),(255,0,0))
             gui.update()
         else:
@@ -68,9 +68,11 @@ while True:
                 c.send_target(food[0].pos[0], food[0].pos[1])
                 gui.debug_line(c.player.center, food[0].pos,(0,0,255))
                 gui.update()
+                print("Found food at: " + str(food[0].pos))
             else:
                 rx = c.player.center[0] + random.randrange(-400, 401)
                 ry = c.player.center[1] + random.randrange(-400, 401)
                 c.send_target(rx, ry)
                 gui.debug_line(c.player.center, (rx, ry),(0,255,0))
-                gui.update()   
+                gui.update()  
+                print("Nothing to do, heading to random destination: " + str((rx, ry)))
