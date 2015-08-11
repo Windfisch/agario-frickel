@@ -8,4 +8,5 @@ left click, space  = split
 right click, w = eject some mass
 r = respawn
 s = lock input
+b = lock bot input
 esc = quit

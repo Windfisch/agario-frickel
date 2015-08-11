@@ -119,7 +119,8 @@ while True:
                     color = (0,255,0)
                     print("Nothing to do, heading to random targetination: " + str((rx, ry)))
         
-        c.send_target(target[0], target[1])
+        if gui.bot_input:
+            c.send_target(target[0], target[1])
         gui.draw_line(c.player.center, target, color)
         gui.update()
         stats.log_pos(c.player.center)

@@ -20,6 +20,7 @@ else:
 
 logging = False
 input = False
+bot_input = True
 clock = pygame.time.Clock()
 
 screensize=(1280, 800)
@@ -190,7 +191,7 @@ def set_client(cl):
     c=cl
 
 def draw_frame():
-    global screen, movement, zoom, screensize, input
+    global screen, movement, zoom, screensize, input, bot_input
 
     pygame.event.pump()
     clock.tick()
@@ -198,16 +199,29 @@ def draw_frame():
     screen.fill((255,255,255))
     draw_world_borders() 
     
-    for cell in c.world.cells.values():
+    food = list(filter(lambda x: x.is_food, c.world.cells.values()))
+    
+    cells = list(filter(lambda x: not x.is_food and not x.is_virus, c.world.cells.values()))
+    cells = sorted(cells, key = lambda x: x.mass)
+    
+    viruses = list(filter(lambda x: x.is_virus, c.world.cells.values()))
+    viruses = sorted(cells, key = lambda x: x.mass)
+    
+    for cell in food:
         draw_cell(cell)
     
+    for cell in cells:
+        draw_cell(cell)
+        
+    for cell in viruses:
+        draw_cell(cell)
     draw_leaderboard()
     
     total_mass = 0
     for cell in c.player.own_cells:
         total_mass += cell.mass
     
-    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - INPUT LOCKED" if not input else " FPS"))
+    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - INPUT LOCKED" if not input else " FPS") + (" - BOT INPUT LOCKED" if not bot_input else ""))
     
     events = pygame.event.get()
     for event in events:
@@ -221,6 +235,8 @@ def draw_frame():
         if event.type == KEYDOWN:
             if event.key == K_s:
                 input = not input
+            if event.key == K_b:
+                bot_input = not bot_input
             if event.key == K_ESCAPE:
                 pygame.quit()
             if event.key == K_r:
