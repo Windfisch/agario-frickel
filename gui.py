@@ -190,13 +190,19 @@ def set_client(cl):
     global c
     c=cl
 
+def clear_screen():
+    global screen
+    global c
+
+    screen.fill((255,255,255))
+
 def draw_frame():
     global screen, movement, zoom, screensize, input, bot_input
 
     pygame.event.pump()
     clock.tick()
-  
-    screen.fill((255,255,255))
+ 
+    clear_screen()
     draw_world_borders() 
     
     food = list(filter(lambda x: x.is_food, c.world.cells.values()))
