@@ -63,9 +63,11 @@ class Strategy:
 
         # if however there's no enemy to avoid, chase food or jizz randomly around
         else:
+            def edible(cell): return (cell.is_food) or (cell.mass <= sorted(c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75) and not (cell.is_virus)
+            
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
-                if self.target_cell not in c.world.cells.values():
+                if self.target_cell not in c.world.cells.values() or not edible(self.target_cell):
                     self.target_cell = None
                     self.has_target = False
                     print("target_cell does not exist any more")
@@ -74,8 +76,7 @@ class Strategy:
                 print("Reached random destination")
             
             if not self.has_target:
-                def eatable(cell): return (cell.is_food) or (cell.mass <= sorted(c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75) and not (cell.is_virus)
-                food = list(filter(eatable, c.world.cells.values()))
+                food = list(filter(edible, c.world.cells.values()))
                 
                 def dist(cell): return math.sqrt((cell.pos[0]-c.player.center[0])**2 + (cell.pos[1]-c.player.center[1])**2)
                 food = sorted(food, key = dist)
