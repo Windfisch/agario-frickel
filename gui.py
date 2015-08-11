@@ -22,7 +22,7 @@ logging = False
 input = False
 clock = pygame.time.Clock()
 
-screensize=(1280, 720)
+screensize=(1280, 800)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
     
 def draw_line(p1, p2, color, global_coords=True):

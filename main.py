@@ -56,7 +56,7 @@ while True:
             relpos = ((cell.pos[0]-c.player.center[0]),(cell.pos[1]-c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if (not cell.is_virus and dist < 300+2*cell.size and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < cell.size and cell.mass < my_largest):
+            if (not cell.is_virus and dist < 500+2*cell.size and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < cell.size and cell.mass < my_largest):
                 angle = math.atan2(relpos[1],relpos[0])
                 corridor_width = 2 * math.asin(cell.size / dist)
                 forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
@@ -85,15 +85,15 @@ while True:
             
             target = (runaway_x, runaway_y)
             has_target = False
+            target_cell = None
             
             color = (255,0,0)
             print ("Running away: " + str((runaway_x-c.player.center[0], runaway_y-c.player.center[1])))
         else:
-            if target_cell != None:
-                if target_cell not in c.world.cells.values():
-                    target_cell = None
-                    has_target = False
-                    print("target_cell does not exist any more")
+            if target_cell not in c.world.cells.values():
+                target_cell = None
+                has_target = False
+                print("target_cell does not exist any more")
             elif target == tuple(c.player.center):
                 has_target = False
                 print("Reached random destination")
