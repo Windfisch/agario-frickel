@@ -77,7 +77,7 @@ def draw_arc(pos, r, bounds, color, global_coords=True):
     if global_coords:
         pos =  world_to_win_pt(pos, c.player.center)
     
-    gfxdraw.arc(screen, pos[0], pos[1], r, bounds[0], bounds[1], color)
+    gfxdraw.arc(screen, pos[0], pos[1], r, int(bounds[0]*180/math.pi), int(bounds[1]*180/math.pi), color)
 
 def update():
     pygame.display.update()
