@@ -62,13 +62,14 @@ while True:
                 forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
                 runaway = True
         
-        if c.player.center[0] < c.world.top_left[1]+c.player.total_size:
+        #wall avoidance
+        if c.player.center[0] < c.world.top_left[1]+(c.player.total_size*2):
             forbidden_intervals += [(0.5*pi, 1.5*pi)]
-        if c.player.center[0] > c.world.bottom_right[1]-c.player.total_size:
+        if c.player.center[0] > c.world.bottom_right[1]-(c.player.total_size*2):
             forbidden_intervals += [(0,0.5*pi), (1.5*pi, 2*pi)]
-        if c.player.center[1] < c.world.top_left[0]+c.player.total_size:
+        if c.player.center[1] < c.world.top_left[0]+(c.player.total_size*2):
             forbidden_intervals += [(pi, 2*pi)]
-        if c.player.center[1] > c.world.bottom_right[0]-c.player.total_size:
+        if c.player.center[1] > c.world.bottom_right[0]-(c.player.total_size*2):
             forbidden_intervals += [(0, pi)]
         
         if (runaway):
