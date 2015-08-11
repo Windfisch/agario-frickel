@@ -7,6 +7,5 @@ move mouse  = move
 left click, space  = split
 right click, w = eject some mass
 r = respawn
-s = lock input
-b = lock bot input
+s = lock input. cycles through: user lock -> user and bot lock -> bot lock -> no lock
 esc = quit

@@ -221,7 +221,7 @@ def draw_frame():
     for cell in c.player.own_cells:
         total_mass += cell.mass
     
-    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - INPUT LOCKED" if not input else " FPS") + (" - BOT INPUT LOCKED" if not bot_input else ""))
+    pygame.display.set_caption("Agar.io: " + str(c.player.nick) + " - " + str(int(total_mass)) + " Total Mass - " + str(int(clock.get_fps())) + (" FPS - USER INPUT LOCKED" if not input else " FPS") + (" - BOT INPUT LOCKED" if not bot_input else ""))
     
     events = pygame.event.get()
     for event in events:
@@ -234,9 +234,18 @@ def draw_frame():
             pygame.display.quit()
         if event.type == KEYDOWN:
             if event.key == K_s:
-                input = not input
-            if event.key == K_b:
-                bot_input = not bot_input
+                if not input and bot_input:
+                    input = False
+                    bot_input = False
+                elif not input and not bot_input:
+                    input = True
+                    bot_input = False
+                elif input and not bot_input:
+                    input = True
+                    bot_input = True
+                else:
+                    input = False
+                    bot_input = True
             if event.key == K_ESCAPE:
                 pygame.quit()
             if event.key == K_r:
