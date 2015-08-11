@@ -69,6 +69,10 @@ while True:
         
         if (runaway):
             forbidden_intervals = merge_intervals(forbidden_intervals)
+
+            for i in forbidden_intervals:
+                gui.draw_arc(c.player.center, c.player.total_size+10, i, (255,0,255))
+
             allowed_intervals = invert_angle_intervals(forbidden_intervals)
 
             (a,b) = find_largest_angle_interval(allowed_intervals)
