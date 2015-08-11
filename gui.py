@@ -25,36 +25,53 @@ clock = pygame.time.Clock()
 screensize=(1280, 720)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
     
-def debug_line(p1, p2, color):
-    global screen
-    p1win = world_to_win_pt(p1, c.player.center)
-    p2win = world_to_win_pt(p2, c.player.center)
-    gfxdraw.line(screen, p1win[0], p1win[1], p2win[0], p2win[1], color)
+def draw_line(p1, p2, color, global_coords=True):
+    if global_coords:
+        p1 = world_to_win_pt(p1, c.player.center)
+        p2 = world_to_win_pt(p2, c.player.center)
 
-def debug_box(rect, color, filled=False):
+    gfxdraw.line(screen, p1[0], p1[1], p2[0], p2[1], color)
+
+def draw_box(rect, color, filled=False, global_coords=True):
+    if global_coords:
+        t = (
+            world_to_win_pt(rect[0][0], c.player.center),
+            world_to_win_pt(rect[0][1], c.player.center)
+        )
+        rect = (t, rect[1])
+    
     if filled:
         screen.fill(color, rect)
     else:
         gfxdraw.rectangle(screen, rect, color)
 
-def debug_circle(pos, r, color, filled=False):
+def draw_circle(pos, r, color, filled=False, global_coords=True):
+    if global_coords:
+        pos = (
+            world_to_win_pt(pos[0], c.player.center),
+            world_to_win_pt(pos[1], c.player.center)
+        )
+    
     if filled:
         gfxdraw.filled_circle(screen, pos[0], pos[1], r, color)
     else:
         gfxdraw.circle(screen, pos[0], pos[1], r, color)
     gfxdraw.aacircle(screen, pos[0], pos[1], r, color)
 
-def debug_polygon(polygon, color, filled=False):
-    polygon = list(map(lambda x: world_to_win_pt(x, c.player.center), polygon))
-    if filled:
-        gfxdraw.filled_polygon(screen, polygon, color)
-    else:
-        gfxdraw.polygon(screen, polygon, color)
-    gfxdraw.aapolygon(screen, polygon, color)
+def draw_polygon(polygon, color, filled=False, global_coords=True):
+    if len(polygon) > 2:
+        if global_coords:
+            polygon = list(map(lambda x: world_to_win_pt(x, c.player.center), polygon))
+        
+        if filled:
+            gfxdraw.filled_polygon(screen, polygon, color)
+        else:
+            gfxdraw.polygon(screen, polygon, color)
+        gfxdraw.aapolygon(screen, polygon, color)
 
-def debug_path(path, color):
+def draw_path(path, color, global_coords=True):
     for i in range(1, len(path)):
-        debug_line(path[i-1], path[i], color)
+        draw_line(path[i-1], path[i], color, global_coords)
 
 def update():
     pygame.display.update()
