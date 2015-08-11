@@ -47,10 +47,7 @@ def draw_box(rect, color, filled=False, global_coords=True):
 
 def draw_circle(pos, r, color, filled=False, global_coords=True):
     if global_coords:
-        pos = (
-            world_to_win_pt(pos[0], c.player.center),
-            world_to_win_pt(pos[1], c.player.center)
-        )
+        pos =  world_to_win_pt(pos, c.player.center)
     
     if filled:
         gfxdraw.filled_circle(screen, pos[0], pos[1], r, color)
