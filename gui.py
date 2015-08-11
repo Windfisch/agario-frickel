@@ -73,6 +73,12 @@ def draw_path(path, color, global_coords=True):
     for i in range(1, len(path)):
         draw_line(path[i-1], path[i], color, global_coords)
 
+def draw_arc(pos, r, bounds, color, global_coords=True):
+    if global_coords:
+        pos =  world_to_win_pt(pos, c.player.center)
+    
+    gfxdraw.arc(screen, pos[0], pos[1], r, bounds[0], bounds[1], color)
+
 def update():
     pygame.display.update()
 
