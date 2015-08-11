@@ -45,13 +45,14 @@ while True:
         runaway=False
         
         my_smallest = min(map(lambda cell : cell.mass, c.player.own_cells))
+        my_largest = max(map(lambda cell : cell.mass, c.player.own_cells))
 
         forbidden_intervals = []
         for cell in c.world.cells.values():
             relpos = ((cell.pos[0]-c.player.center[0]),(cell.pos[1]-c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if dist < cell.size*4 and  cell.mass > 1.25 * my_smallest:
+            if (not cell.is_virus and dist < 100+cell.size and  cell.mass > 1.1 * my_smallest) or (cell.is_virus and dist < cell.size and cell.mass < my_largest):
                 angle = math.atan2(relpos[1],relpos[0])
                 corridor_width = 2 * math.asin(cell.size / dist)
                 forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
