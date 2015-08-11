@@ -205,7 +205,7 @@ def draw_frame():
     cells = sorted(cells, key = lambda x: x.mass)
     
     viruses = list(filter(lambda x: x.is_virus, c.world.cells.values()))
-    viruses = sorted(cells, key = lambda x: x.mass)
+    viruses = sorted(viruses, key = lambda x: x.mass)
     
     for cell in food:
         draw_cell(cell)
