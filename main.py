@@ -90,10 +90,12 @@ while True:
             color = (255,0,0)
             print ("Running away: " + str((runaway_x-c.player.center[0], runaway_y-c.player.center[1])))
         else:
-            if target_cell not in c.world.cells.values():
-                target_cell = None
-                has_target = False
-                print("target_cell does not exist any more")
+            if target_cell != None:
+                target = tuple(target_cell.pos)
+                if target_cell not in c.world.cells.values():
+                    target_cell = None
+                    has_target = False
+                    print("target_cell does not exist any more")
             elif target == tuple(c.player.center):
                 has_target = False
                 print("Reached random destination")
