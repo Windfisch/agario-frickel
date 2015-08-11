@@ -15,6 +15,8 @@ class Strategy:
         my_smallest = min(map(lambda cell : cell.mass, c.player.own_cells))
         my_largest = max(map(lambda cell : cell.mass, c.player.own_cells))
 
+
+        # enemy/virus avoidance
         forbidden_intervals = []
         for cell in c.world.cells.values():
             relpos = ((cell.pos[0]-c.player.center[0]),(cell.pos[1]-c.player.center[1]))
@@ -26,7 +28,7 @@ class Strategy:
                 forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
                 runaway = True
         
-        #wall avoidance
+        # wall avoidance
         if c.player.center[0] < c.world.top_left[1]+(c.player.total_size*2):
             forbidden_intervals += [(0.5*pi, 1.5*pi)]
         if c.player.center[0] > c.world.bottom_right[1]-(c.player.total_size*2):
@@ -36,11 +38,11 @@ class Strategy:
         if c.player.center[1] > c.world.bottom_right[0]-(c.player.total_size*2):
             forbidden_intervals += [(0, pi)]
         
+        # if there's actually an enemy to avoid:
         if (runaway):
-            forbidden_intervals = merge_intervals(forbidden_intervals)
+            # find the largest non-forbidden interval, and run into this direction.
 
-            for i in forbidden_intervals:
-                gui.draw_arc(c.player.center, c.player.total_size+10, i, (255,0,255))
+            forbidden_intervals = merge_intervals(forbidden_intervals)
 
             allowed_intervals = invert_angle_intervals(forbidden_intervals)
 
@@ -54,6 +56,12 @@ class Strategy:
             
             self.color = (255,0,0)
             print ("Running away: " + str((runaway_x-c.player.center[0], runaway_y-c.player.center[1])))
+            
+            # a bit of debugging information
+            for i in forbidden_intervals:
+                gui.draw_arc(c.player.center, c.player.total_size+10, i, (255,0,255))
+
+        # if however there's no enemy to avoid, chase food or jizz randomly around
         else:
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
@@ -86,6 +94,8 @@ class Strategy:
                     self.color = (0,255,0)
                     print("Nothing to do, heading to random targetination: " + str((rx, ry)))
         
+
+        # more debugging
         gui.draw_line(c.player.center, self.target, self.color)
         gui.update()
 
