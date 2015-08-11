@@ -52,12 +52,20 @@ while True:
             relpos = ((cell.pos[0]-c.player.center[0]),(cell.pos[1]-c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if (not cell.is_virus and dist < 100+cell.size and  cell.mass > 1.1 * my_smallest) or (cell.is_virus and dist < cell.size and cell.mass < my_largest):
+            if (not cell.is_virus and dist < 300+2*cell.size and  cell.mass > 1.1 * my_smallest) or (cell.is_virus and dist < cell.size and cell.mass < my_largest):
                 angle = math.atan2(relpos[1],relpos[0])
                 corridor_width = 2 * math.asin(cell.size / dist)
                 forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
                 runaway=True
         
+        if c.player.center[0] < c.world.top_left[1]+c.player.total_size:
+            forbidden_intervals += [(0.5*pi, 1.5*pi)]
+        if c.player.center[0] > c.world.bottom_right[1]-c.player.total_size:
+            forbidden_intervals += [(0,0.5*pi), (1.5*pi, 2*pi)]
+        if c.player.center[1] < c.world.top_left[0]+c.player.total_size:
+            forbidden_intervals += [(0, pi)]
+        if c.player.center[1] > c.world.bottom_right[0]-c.player.total_size:
+            forbidden_intervals += [(pi, 2*pi)]
         
         if (runaway):
             forbidden_intervals = merge_intervals(forbidden_intervals)
