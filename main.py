@@ -10,6 +10,7 @@ import random
 import gui
 import stats
 from subscriber import DummySubscriber
+from interval_utils import *
 
 # global vars
 sub = DummySubscriber()
@@ -25,11 +26,10 @@ except:
 
 # connect
 c.connect(addr,token)
-# c.send_facebook(
-            # 'g2gDYQFtAAAAEKO6L3c8C8/eXtbtbVJDGU5tAAAAUvOo7JuWAVSczT5Aj0eo0CvpeU8ijGzKy/gXBVCxhP5UO+ERH0jWjAo9bU1V7dU0GmwFr+SnzqWohx3qvG8Fg8RHlL17/y9ifVWpYUdweuODb9c=')
+c.send_facebook(
+            'g2gDYQFtAAAAEKO6L3c8C8/eXtbtbVJDGU5tAAAAUvOo7JuWAVSczT5Aj0eo0CvpeU8ijGzKy/gXBVCxhP5UO+ERH0jWjAo9bU1V7dU0GmwFr+SnzqWohx3qvG8Fg8RHlL17/y9ifVWpYUdweuODb9c=')
 
-c.player.nick="test cell pls ignore"
-c.send_spectate()
+c.player.nick="so mal sehen"
 
 
 # initialize GUI
@@ -42,18 +42,29 @@ while True:
     gui.draw_frame()
     
     if len(list(c.player.own_cells)) > 0:
+        runaway=False
+        
         my_smallest = min(map(lambda cell : cell.mass, c.player.own_cells))
 
-        runaway_x, runaway_y=(0.0,0.0)
+        forbidden_intervals = []
         for cell in c.world.cells.values():
-            dist = math.sqrt((cell.pos[0]-c.player.center[0])**2 + (cell.pos[1]-c.player.center[1])**2)
+            relpos = ((cell.pos[0]-c.player.center[0]),(cell.pos[1]-c.player.center[1]))
+            dist = math.sqrt(relpos[0]**2+relpos[1]**2)
+
             if dist < cell.size*4 and  cell.mass > 1.25 * my_smallest:
-                runaway_x += (c.player.center[0] - cell.pos[0]) / cell.mass / dist
-                runaway_y += (c.player.center[1] - cell.pos[1]) / cell.mass / dist
+                angle = math.atan2(relpos[1],relpos[0])
+                corridor_width = 2 * math.asin(cell.size / dist)
+                forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
+                runaway=True
         
-        runaway_r = math.sqrt(runaway_x**2 + runaway_y**2)
-        if (runaway_r > 0):
-            runaway_x, runaway_y = (c.player.center[0]+int(100*runaway_x / runaway_r)), (c.player.center[1]+int(100*runaway_y / runaway_r))
+        
+        if (runaway):
+            forbidden_intervals = merge_intervals(forbidden_intervals)
+            allowed_intervals = invert_angle_intervals(forbidden_intervals)
+
+            (a,b) = find_largest_angle_interval(allowed_intervals)
+            runaway_angle = (a+b)/2
+            runaway_x, runaway_y = (c.player.center[0]+int(100*math.cos(runaway_angle))), (c.player.center[1]+int(100*math.sin(runaway_angle)))
             
             c.send_target(runaway_x, runaway_y)
             print ("Running away: " + str((runaway_x-c.player.center[0], runaway_y-c.player.center[1])))
