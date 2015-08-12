@@ -269,5 +269,3 @@ def draw_frame():
                     c.send_shoot()
             if event.type == MOUSEMOTION:
                     c.send_target(*win_to_world_pt(event.pos, c.player.center))
-    
-    pygame.display.update()

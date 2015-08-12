@@ -45,4 +45,10 @@ def find_largest_angle_interval(intervals):
         intervals_ = intervals
 
     return max(intervals_, key=lambda p:p[1]-p[0])
-    
+
+def get_point_angle(origin, p):
+    dx = p[0] - origin[0]
+    dy = p[1] - origin[1]
+    rads = atan2(-dy,dx)
+    rads %= 2*pi
+    return rads

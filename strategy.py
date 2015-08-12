@@ -98,6 +98,5 @@ class Strategy:
 
         # more debugging
         gui.draw_line(c.player.center, self.target, self.color)
-        gui.update()
 
         return self.target

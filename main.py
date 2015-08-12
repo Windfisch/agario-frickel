@@ -53,3 +53,4 @@ while True:
 
         stats.log_pos(c.player.center)
         stats.log_mass(c.player.total_mass)
+    gui.update()
