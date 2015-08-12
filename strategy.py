@@ -25,8 +25,8 @@ class Strategy:
 
             if (not cell.is_virus and dist < 500+2*cell.size and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < my_largest and cell.mass < my_largest):
                 angle = math.atan2(relpos[1],relpos[0])
-                corridor_width = 2 * math.asin(cell.size / dist)
-                forbidden_intervals += canonicalize_angle_interval((angle-corridor_width, angle+corridor_width))
+                corridor_halfwidth = math.asin(cell.size / dist)
+                forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
                 runaway = True
         
         # wall avoidance
