@@ -11,6 +11,12 @@ class Strategy:
         self.color = (0,0,0)
         self.c = c
     
+    def dist(self, cell):
+        return math.sqrt((cell.pos[0]-self.c.player.center[0])**2 + (cell.pos[1]-self.c.player.center[1])**2)
+    
+    def edible(self, cell):
+        return (cell.is_food) or (cell.mass <= sorted(self.c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75) and not (cell.is_virus)
+    
     def weight_cell(self, cell):
         pass
     
@@ -67,12 +73,10 @@ class Strategy:
                 gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
 
         # if however there's no enemy to avoid, chase food or jizz randomly around
-        else:
-            def edible(cell): return (cell.is_food) or (cell.mass <= sorted(self.c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75) and not (cell.is_virus)
-            
+        else: 
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
-                if self.target_cell not in self.c.world.cells.values() or not edible(self.target_cell):
+                if self.target_cell not in self.c.world.cells.values() or not self.edible(self.target_cell):
                     self.target_cell = None
                     self.has_target = False
                     print("target_cell does not exist any more")
@@ -81,10 +85,8 @@ class Strategy:
                 print("Reached random destination")
             
             if not self.has_target:
-                food = list(filter(edible, self.c.world.cells.values()))
-                
-                def dist(cell): return math.sqrt((cell.pos[0]-self.c.player.center[0])**2 + (cell.pos[1]-self.c.player.center[1])**2)
-                food = sorted(food, key = dist)
+                food = list(filter(self.edible, self.c.world.cells.values()))
+                food = sorted(food, key = self.dist)
                 
                 if len(food) > 0:
                     self.target = (food[0].pos[0], food[0].pos[1])
