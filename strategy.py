@@ -1,6 +1,7 @@
 import math
 from interval_utils import *
 import gui
+import random
 
 class Strategy:
     def __init__(self):
