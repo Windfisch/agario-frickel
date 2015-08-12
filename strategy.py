@@ -99,5 +99,15 @@ class Strategy:
 
         # more debugging
         gui.draw_line(c.player.center, self.target, self.color)
-
+        
+        #test stuff pls ignore
+        interval = [0, 0.5*math.pi]
+        point = (c.player.center[0]+10, c.player.center[1]+200)
+        
+        gui.draw_arc(c.player.center, 200, interval, (0,0,0))
+        gui.draw_circle(point, 2, (0,0,0))
+        
+        print(math.degrees(get_point_angle(c.player.center, point)))
+        print(check_point_in_interval(c.player.center, point, interval))
+        
         return self.target
