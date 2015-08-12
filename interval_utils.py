@@ -59,3 +59,6 @@ def check_point_in_interval(origin, p, interval):
         return True
     else:
         return False
+        
+def get_cells_in_interval(origin, interval, cells):
+    return list(filter(lambda x: check_point_in_interval(origin, x.pos, interval), cells))
