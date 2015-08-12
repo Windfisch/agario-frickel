@@ -37,7 +37,7 @@ c.player.nick="test cell pls ignore"
 gui.set_client(c)
 
 # initialize strategy
-strategy = Strategy()
+strategy = Strategy(c)
 
 # main loop
 while True:
@@ -46,7 +46,7 @@ while True:
     gui.draw_frame()
     
     if len(list(c.player.own_cells)) > 0:
-        target = strategy.process_frame(c)
+        target = strategy.process_frame()
 
         if gui.bot_input:
             c.send_target(target[0], target[1])
