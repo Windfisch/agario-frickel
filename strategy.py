@@ -65,6 +65,19 @@ class Strategy:
         # if however there's no enemy to avoid, chase food or jizz randomly around
         else:
             def edible(cell): return (cell.is_food) or (cell.mass <= sorted(c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75) and not (cell.is_virus)
+            def rival(cell, food):
+                if cell.is_virus or cell.is_food: return False
+                if cell.cid in c.player.own_ids: return False
+
+                if cell.mass < 1.25*my_smallest:
+                    return food.is_food or cell.size > 1.25*food.size
+                else:
+                    return False
+            def splitkiller(cell):
+                return not cell.is_virus and not cell.is_food and cell.mass > 1.25*2*my_smallest
+            
+            def nonsplitkiller(cell):
+                return not cell.is_virus and not cell.is_food and 1.20*my_smallest < cell.mass and cell.mass < 1.25*2*my_smallest
             
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
@@ -79,8 +92,49 @@ class Strategy:
             if not self.has_target:
                 food = list(filter(edible, c.world.cells.values()))
                 
-                def dist(cell): return math.sqrt((cell.pos[0]-c.player.center[0])**2 + (cell.pos[1]-c.player.center[1])**2)
-                food = sorted(food, key = dist)
+                def quality(cell):
+                    dd_sq = max((cell.pos[0]-c.player.center[0])**2 + (cell.pos[1]-c.player.center[1])**2,0.001)
+                    sigma = 500
+                    dist_score = -math.exp(-dd_sq/(2*sigma**2))
+
+                    rivals = filter(lambda r : rival(r,cell), c.world.cells.values())
+                    splitkillers = filter(splitkiller, c.world.cells.values())
+                    nonsplitkillers = filter(nonsplitkiller, c.world.cells.values())
+
+                    rival_score = 0
+                    for r in rivals:
+                        dd_sq = max(0.001, (r.pos[0]-cell.pos[0])**2 + (r.pos[1]-cell.pos[1])**2)
+                        sigma = r.size + 100
+                        rival_score += math.exp(-dd_sq/(2*sigma**2))
+
+                    splitkill_score = 0
+                    for s in splitkillers:
+                        dd_sq = max(0.001, (s.pos[0]-cell.pos[0])**2 + (s.pos[1]-cell.pos[1])**2)
+                        sigma = (500+2*s.size)
+                        splitkill_score += math.exp(-dd_sq/(2*sigma**2))
+
+                    nonsplitkill_score = 0
+                    for s in nonsplitkillers:
+                        dd_sq = max(0.001, (s.pos[0]-cell.pos[0])**2 + (s.pos[1]-cell.pos[1])**2)
+                        sigma = (300+s.size)
+                        nonsplitkill_score += math.exp(-dd_sq/(2*sigma**2))
+
+                    density_score = 0
+                    sigma = 300
+                    for f in filter(lambda c : c.is_food and c!=cell, c.world.cells.values()):
+                        dd_sq = (f.pos[0]-cell.pos[0])**2 + (f.pos[1]-cell.pos[1])**2
+                        density_score -= math.exp(-dd_sq/(2*sigma**2))
+
+                    wall_score = 0
+                    wall_dist = min( cell.pos[0]-c.world.top_left[1], c.world.bottom_right[1]-cell.pos[0], cell.pos[1]-c.world.top_left[0], c.world.bottom_right[0]-cell.pos[1] )
+                    sigma = 100
+                    wall_score = math.exp(-wall_dist**2/(2*sigma**2))
+
+                    return dist_score + 0.2*rival_score + nonsplitkill_score + 5*splitkill_score + 0.1*density_score + 5*wall_score
+                    ##print (density_score)
+                    #return density_score
+
+                food = sorted(food, key = quality)
                 
                 if len(food) > 0:
                     self.target = (food[0].pos[0], food[0].pos[1])
