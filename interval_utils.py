@@ -49,16 +49,17 @@ def find_largest_angle_interval(intervals):
 def get_point_angle(origin, p):
     dx = p[0] - origin[0]
     dy = p[1] - origin[1]
-    return math.atan2(dy,dx)
+    return math.atan2(dy,dx) % (2*pi)
 
 def check_point_in_interval(origin, p, interval):
     ang = get_point_angle(origin, p)
-    print(interval)
-    print(canonicalize_angle_interval(interval))
-    if ang >= interval[0] and ang <= interval[1]:
-        return True
+    a,b = interval[0]%(2*pi), interval[1]%(2*pi)
+    print ((ang,a,b))
+    if a <= b:
+        return (a <= ang and ang <= b)
     else:
-        return False
-        
+        return (a <= ang or ang <= b)
+
 def get_cells_in_interval(origin, interval, cells):
     return list(filter(lambda x: check_point_in_interval(origin, x.pos, interval), cells))
+
