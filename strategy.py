@@ -23,7 +23,7 @@ class Strategy:
             relpos = ((cell.pos[0]-c.player.center[0]),(cell.pos[1]-c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if (not cell.is_virus and dist < 500+2*cell.size and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < my_largest and cell.mass < my_largest):
+            if (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < my_largest and cell.mass < my_largest):
                 angle = math.atan2(relpos[1],relpos[0])
                 corridor_halfwidth = math.asin(cell.size / dist)
                 forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
