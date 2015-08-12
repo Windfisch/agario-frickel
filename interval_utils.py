@@ -55,7 +55,7 @@ def check_point_in_interval(origin, p, interval):
     ang = get_point_angle(origin, p)
     print(interval)
     print(canonicalize_angle_interval(interval))
-    if ang > interval[0] and ang < interval[1]:
+    if ang >= interval[0] and ang <= interval[1]:
         return True
     else:
         return False

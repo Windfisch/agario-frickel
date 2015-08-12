@@ -102,7 +102,7 @@ class Strategy:
         
         #test stuff pls ignore
         interval = [0, 0.5*math.pi]
-        point = (c.player.center[0]+10, c.player.center[1]+200)
+        point = (c.player.center[0], c.player.center[1]+200)
         
         gui.draw_arc(c.player.center, 200, interval, (0,0,0))
         gui.draw_circle(point, 2, (0,0,0))
