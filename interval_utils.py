@@ -54,11 +54,29 @@ def get_point_angle(origin, p):
 def check_point_in_interval(origin, p, interval):
     ang = get_point_angle(origin, p)
     a,b = interval[0]%(2*pi), interval[1]%(2*pi)
-    print ((ang,a,b))
     if a <= b:
         return (a <= ang and ang <= b)
     else:
         return (a <= ang or ang <= b)
+
+def intervals_intersect(int1_, int2_):
+    int1s = canonicalize_angle_interval(int1_)
+    int2s = canonicalize_angle_interval(int2_)
+
+    for int1 in int1s:
+        for int2 in int2s:
+            if (max(int1[0],int2[0]) <= min(int1[1],int2[1])):
+                return True
+
+    return False
+
+def check_cell_in_interval(origin, cell, interval):
+    ang = get_point_angle(origin, cell.pos)
+
+    dist = math.sqrt( (cell.pos[0]-origin[0])**2 + (cell.pos[1]-origin[1])**2 )
+    corridor_halfwidth = math.asin(cell.size / dist)
+
+    return intervals_intersect(interval, (ang-corridor_halfwidth, ang+corridor_halfwidth))
 
 def get_cells_in_interval(origin, interval, cells):
     return list(filter(lambda x: check_point_in_interval(origin, x.pos, interval), cells))
