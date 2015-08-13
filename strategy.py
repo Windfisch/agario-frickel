@@ -139,7 +139,7 @@ class Strategy:
                     sigma = 100
                     wall_score = math.exp(-wall_dist**2/(2*sigma**2))
 
-                    return dist_score + 0.2*rival_score + nonsplitkill_score + 5*splitkill_score + 0.1*density_score + 5*wall_score
+                    return 2.5*dist_score + 0.2*rival_score + nonsplitkill_score + 5*splitkill_score + 0.1*density_score + 5*wall_score
                     ##print (density_score)
                     #return density_score
 
