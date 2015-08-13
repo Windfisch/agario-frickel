@@ -15,10 +15,30 @@ class Strategy:
         return math.sqrt((cell.pos[0]-self.c.player.center[0])**2 + (cell.pos[1]-self.c.player.center[1])**2)
     
     def edible(self, cell):
-        return (cell.is_food) or (cell.mass <= sorted(self.c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75) and not (cell.is_virus)
+        return ((cell.is_food) or (cell.mass <= sorted(self.c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75)) and not (cell.is_virus)
+    
+    def threat(self, cell):
+        if cell.is_virus and (cell.mass <= sorted(self.c.player.own_cells, key = lambda x: x.mass)[0].mass * 0.75):
+            return True
+        elif (cell.mass <= sorted(self.c.player.own_cells, key = lambda x: x.mass)[0].mass * 1.25):
+            return True
+        else:
+            return False
     
     def weight_cell(self, cell):
-        pass
+        df = (1/self.dist(cell))
+        if self.edible(cell):
+            if cell.is_food:
+                return cell.mass * df
+            else:
+                return cell.mass * df #todo: factor for optimal food mass
+        elif self.threat(cell):
+            if cell.is_virus:
+                return -cell.mass * df * 100
+            else:
+                return -cell.mass * df
+        else:
+            return 0
     
     def process_frame(self):
         runaway = False
@@ -148,6 +168,10 @@ class Strategy:
                 if len(food) > 0:
                     self.target = (food[0].pos[0], food[0].pos[1])
                     self.target_cell = food[0]
+                    
+                    print(self.target_cell.mass)
+                    print(self.weight_cell(self.target_cell))
+                    
                     self.has_target = True
                     self.color = (0,0,255)
                     print("Found food at: " + str(food[0].pos))
