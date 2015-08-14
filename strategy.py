@@ -86,12 +86,14 @@ class Strategy:
         #return density_score
     
     def weight_cell(self, cell):
-        df = (1/self.dist(cell))
+        df = (10/self.dist(cell))
         if self.edible(cell):
+            quality = self.quality(cell)
             if cell.is_food:
-                return cell.mass * df
+                return 1 + cell.mass * df * quality
             else:
-                return cell.mass * df #todo: factor for optimal food mass
+                mf = 1 / ((self.get_my_smallest().mass * 0.75) + 1) - cell.mass
+                return cell.mass * df * quality * mf
         elif self.threat(cell):
             if cell.is_virus:
                 return -cell.mass * df * 100
@@ -172,11 +174,9 @@ class Strategy:
                     self.target = (food[0].pos[0], food[0].pos[1])
                     self.target_cell = food[0]
                     
-                    print(self.target_cell.mass)
-                    print(self.weight_cell(self.target_cell))
-                    
                     self.has_target = True
                     self.color = (0,0,255)
+                    print("weight: ", self.weight_cell(self.target_cell))
                     print("Found food at: " + str(food[0].pos))
                 else:
                     rx = self.c.player.center[0] + random.randrange(-400, 401)
