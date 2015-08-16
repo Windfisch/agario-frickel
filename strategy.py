@@ -148,4 +148,6 @@ class Strategy:
         gui.draw_line(self.c.player.center, self.target, (255,0,0))
         gui.draw_arc(self.c.player.center, 210, bi, (255,0,0))
         
+        gui.draw_text(self.target, str(round(zipped[0][1], 2)), (0,0,0), draw_centered = True)
+        
         return self.target
