@@ -81,6 +81,25 @@ def draw_arc(pos, r, bounds, color, global_coords=True):
     
     gfxdraw.arc(screen, pos[0], pos[1], r, int(bounds[0]*180/math.pi), int(bounds[1]*180/math.pi), color)
 
+def draw_text(pos, text, color, font_size=16, global_coords=True, draw_centered=False):
+    if global_coords:
+        pos =  world_to_win_pt(pos, c.player.center)
+    
+    output = None
+    
+    if font_fallback:
+        font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
+        output = font.render(text, 1, color)
+    else:
+        font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
+        output = font.render(text, color)[0]
+    
+    if draw_centered:
+        screen.blit(output, (pos[0] - (output.get_width()/2), pos[1] - (output.get_height()/2)))
+    else:
+        screen.blit(output, pos)
+    return output
+    
 def update():
     pygame.display.update()
 
@@ -121,16 +140,6 @@ def generate_virus(spikes, spike_length, radius, global_coords):
         points.append(t);
     return points
 
-def draw_text(text, color, font_size):
-    if font_fallback:
-        font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
-        output = font.render(text, 1, color)
-        return output
-    else:
-        font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
-        output = font.render(text, color)
-        return output[0]
-
 def draw_cell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     radius = world_to_win_length(cell.size)
@@ -159,11 +168,13 @@ def draw_cell(cell):
             
             font_size = 16
             
-            surface = draw_text(cell.name, (0, 0, 0), font_size)
-            screen.blit(surface, (cx - (surface.get_width()/2), cy + radius + 5))
+            draw_text((cx, cy + radius + 10), cell.name, (0, 0, 0), font_size, False, True)
+            # surface = draw_text(cell.name, (0, 0, 0), font_size)
+            # screen.blit(surface, (cx - (surface.get_width()/2), cy + radius + 5))
             
-            surface = draw_text(str(int(cell.mass)), (255, 255, 255), font_size)
-            screen.blit(surface, (cx - (surface.get_width()/2), cy - (surface.get_height()/2)))
+            draw_text((cx, cy), str(int(cell.mass)), (255, 255, 255), font_size, False, True)
+            # surface = draw_text(str(int(cell.mass)), (255, 255, 255), font_size)
+            # screen.blit(surface, (cx - (surface.get_width()/2), cy - (surface.get_height()/2)))
         else:
             gfxdraw.aacircle(screen, cx, cy, radius, color)
             gfxdraw.filled_circle(screen, cx, cy, radius, color)
@@ -175,8 +186,9 @@ def draw_leaderboard():
     font_size = 16
     
     for i, s in zip(range(1, len(leaderboard)+1), leaderboard):
-        surface = draw_text((str(i) + ": " +s), (0, 0, 0), font_size)
-        screen.blit(surface, (5, next_y))
+        surface = draw_text((5, next_y), (str(i) + ": " +s), (0, 0, 0), font_size, False)
+        # surface = draw_text((str(i) + ": " +s), (0, 0, 0), font_size)
+        # screen.blit(surface, (5, next_y))
         next_y += surface.get_height()+5
 
 def draw_world_borders():
