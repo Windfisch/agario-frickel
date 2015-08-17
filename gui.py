@@ -247,9 +247,6 @@ def draw_frame():
                 elif not input and not bot_input:
                     input = True
                     bot_input = False
-                elif input and not bot_input:
-                    input = True
-                    bot_input = True
                 else:
                     input = False
                     bot_input = True
