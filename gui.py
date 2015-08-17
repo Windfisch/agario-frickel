@@ -23,6 +23,9 @@ input = False
 bot_input = True
 clock = pygame.time.Clock()
 
+marker = [(0,0),(0,0),(0,0)]
+marker_updated = [True, True, True]
+
 screensize=(1280, 800)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
     
@@ -197,8 +200,22 @@ def clear_screen():
 
     screen.fill((255,255,255))
 
+def draw_marker(pos, color, thick):
+    offset = 40 / math.sqrt(2.)
+    # offset = 15
+    draw_line((pos[0]+offset, pos[1]+offset),(pos[0]-offset, pos[1]-offset), color)
+    draw_line((pos[0]-offset, pos[1]+offset),(pos[0]+offset, pos[1]-offset), color)
+    for r in [10,20,30,40]:
+        draw_circle(pos, r, color)
+
+
+def draw_markers():
+    colors=[(255,0,255),(255,255,0),(0,255,255)]
+    for i in [0, 1, 2]:
+        draw_marker(marker[i], colors[i], marker_updated[i])
+
 def draw_frame():
-    global screen, movement, zoom, screensize, input, bot_input
+    global screen, movement, zoom, screensize, input, bot_input, marker, marker_updated
 
     pygame.event.pump()
     clock.tick()
@@ -222,6 +239,9 @@ def draw_frame():
         
     for cell in viruses:
         draw_cell(cell)
+
+    draw_markers()
+
     draw_leaderboard()
     
     total_mass = 0
@@ -254,16 +274,16 @@ def draw_frame():
                 pygame.quit()
             if event.key == K_r:
                 c.send_respawn()
-        if input:    
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button in [1,2,3]:
+                marker[event.button-1] = win_to_world_pt(event.pos, c.player.center)
+                marker_updated[event.button-1] = True
+                print("set marker "+str(event.button-1)+" to "+str(event.pos))
+        if input:
             if event.type == KEYDOWN:
                 if event.key == K_w:
                     c.send_shoot()
                 if event.key == K_SPACE:
                     c.send_split()
-            if event.type == MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    c.send_split()
-                if event.button == 3:
-                    c.send_shoot()
             if event.type == MOUSEMOTION:
                     c.send_target(*win_to_world_pt(event.pos, c.player.center))
