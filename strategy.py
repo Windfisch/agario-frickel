@@ -150,4 +150,6 @@ class Strategy:
         
         gui.draw_text(self.target, str(round(zipped[0][1], 2)), (0,0,0), draw_centered = True)
         
+        gui.draw_text(self.target, str(round(zipped[0][1], 2)), (0,0,0), draw_centered = True)
+        
         return self.target

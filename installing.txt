@@ -1,0 +1,15 @@
+debian wheezy instructions:
+
+	apt-get install python3
+	apt-get install python3-pip
+	cd repo/
+	ln -s agarnet/agarnet fuckthisshit
+	in main.py, change "from agarnet.agarnet import [...]" to
+		"from fuckthisshit import [...]"
+	pip-3.2 install websocket-client
+		there will be an error message about invalid syntax in
+		sock.send(u"<garbage here>"). Ignore it.
+	follow https://wiki.ubuntuusers.de/Pygame
+		do NOT use pip for installing pygame
+	
+
