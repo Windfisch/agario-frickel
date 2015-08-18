@@ -72,52 +72,54 @@ def aStar(start, goal, grid):
     
     raise ValueError('No Path Found')
 
-path = None
 grid_radius=1100
 grid_density=30
 
 class PathfindingTesterStrategy:
     def __init__(self, c):
         self.c = c
+        self.path = None
+
+    def plan_path(self):
+        goalx = int((marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
+        goaly = int((marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
+        
+        grid = []
+        for x in range(-grid_radius,grid_radius+1,grid_density):
+            gridline = []
+            for y in range(-grid_radius,grid_radius+1,grid_density):
+                val = 0
+
+                for cell in self.c.player.world.cells.values():
+                    relpos = (cell.pos.x - (x+self.c.player.center.x), cell.pos.y - (y+self.c.player.center.y))
+                    dist_sq = relpos[0]**2 + relpos[1]**2
+                    if dist_sq < cell.size**2 *3:
+                        val += 100000000
+
+                gridline.append(Node(None if (x in [-grid_radius,grid_radius] or y in [-grid_radius,grid_radius]) else val, (self.c.player.center[0]+x,self.c.player.center[1]+y), (int((x+grid_radius)/grid_density), int((y+grid_radius)/grid_density))))
+            grid.append(gridline)
+
+        path = aStar(grid[int(grid_radius/grid_density)][int(grid_radius/grid_density)], grid[goalx][goaly], grid)
+        return path
 
     def process_frame(self):
-        global path
-
         if marker_updated[0]:
             marker_updated[0]=False
-
-            goalx = int((marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
-            goaly = int((marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
             
-            grid = []
-            for x in range(-grid_radius,grid_radius+1,grid_density):
-                gridline = []
-                for y in range(-grid_radius,grid_radius+1,grid_density):
-                    val = 0
-
-                    for cell in self.c.player.world.cells.values():
-                        relpos = (cell.pos.x - (x+self.c.player.center.x), cell.pos.y - (y+self.c.player.center.y))
-                        dist_sq = relpos[0]**2 + relpos[1]**2
-                        if dist_sq < cell.size**2 *3:
-                            val += 100000000
-
-                    gridline.append(Node(None if (x in [-grid_radius,grid_radius] or y in [-grid_radius,grid_radius]) else val, (self.c.player.center[0]+x,self.c.player.center[1]+y), (int((x+grid_radius)/grid_density), int((y+grid_radius)/grid_density))))
-                grid.append(gridline)
-
-            path = aStar(grid[int(grid_radius/grid_density)][int(grid_radius/grid_density)], grid[goalx][goaly], grid)
-            for node in path:
+            self.path = self.plan_path()
+            for node in self.path:
                 print (node.point_in_grid)
             print("="*10)
 
 
-        for (node1,node2) in zip(path,path[1:]):
+        for (node1,node2) in zip(self.path,self.path[1:]):
             gui.draw_line(node1.point, node2.point, (0,0,0))
 
-        if path:
-            relx, rely = path[0].point[0]-self.c.player.center.x, path[0].point[1]-self.c.player.center.y
+        if self.path:
+            relx, rely = self.path[0].point[0]-self.c.player.center.x, self.path[0].point[1]-self.c.player.center.y
             if relx*relx + rely*rely < 10**2:
-                path=path[1:]
+                self.path=self.path[1:]
 
-        if path:
-            return path[0].point
+        if self.path:
+            return self.path[0].point
         return marker[0]
