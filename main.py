@@ -11,7 +11,7 @@ import gui
 import stats
 from subscriber import DummySubscriber
 from interval_utils import *
-from strategy import *
+from pathfinding import PathfindingTesterStrategy
 
 # global vars
 sub = DummySubscriber()
@@ -37,7 +37,7 @@ c.player.nick="test cell pls ignore"
 gui.set_client(c)
 
 # initialize strategy
-strategy = Strategy(c)
+strategy = PathfindingTesterStrategy(c)
 
 # main loop
 while True:
@@ -48,7 +48,7 @@ while True:
     if len(list(c.player.own_cells)) > 0:
         target = strategy.process_frame()
 
-        if gui.bot_input:
+        if gui.bot_input and target != None:
             c.send_target(target[0], target[1])
 
         stats.log_pos(c.player.center)
