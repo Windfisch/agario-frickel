@@ -172,7 +172,7 @@ def draw_cell(cell):
             # surface = draw_text(cell.name, (0, 0, 0), font_size)
             # screen.blit(surface, (cx - (surface.get_width()/2), cy + radius + 5))
             
-            draw_text((cx, cy), str(int(cell.mass)), (255, 255, 255), font_size, False, True)
+            draw_text((cx, cy), str(int(cell.mass))+"/"+str(int(cell.size)), (255, 255, 255), font_size, False, True)
             # surface = draw_text(str(int(cell.mass)), (255, 255, 255), font_size)
             # screen.blit(surface, (cx - (surface.get_width()/2), cy - (surface.get_height()/2)))
         else:
