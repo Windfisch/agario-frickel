@@ -112,4 +112,12 @@ class PathfindingTesterStrategy:
 
         for (node1,node2) in zip(path,path[1:]):
             gui.draw_line(node1.point, node2.point, (0,0,0))
+
+        if path:
+            relx, rely = path[0].point[0]-self.c.player.center.x, path[0].point[1]-self.c.player.center.y
+            if relx*relx + rely*rely < 10**2:
+                path=path[1:]
+
+        if path:
+            return path[0].point
         return marker[0]
