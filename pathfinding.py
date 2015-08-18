@@ -121,7 +121,7 @@ class PathfindingTesterStrategy:
 
         if self.path:
             relx, rely = self.path[0].point[0]-self.c.player.center.x, self.path[0].point[1]-self.c.player.center.y
-            if relx*relx + rely*rely < 10**2:
+            if relx*relx + rely*rely < (2*grid_density)**2:
                 self.path=self.path[1:]
 
         if self.path:
