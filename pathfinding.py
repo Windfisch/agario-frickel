@@ -1,5 +1,6 @@
 from gui import marker, marker_updated
 import gui
+import math
 
 
 # A* code taken and adapted from https://gist.github.com/jamiees2/5531924
@@ -17,15 +18,15 @@ class Node:
         # assert other in siblings(self,grid). otherwise this makes no sense
         # assert that siblings are only in horizontal or vertical directions. otherwise
         #        someone must replace the number "1" by appropriate distances
-        return manhattan(self, other) + (self.value + other.value)/2
+        return distance(self, other) + (self.value + other.value)/2
 
 def siblings(point,grid):
     x,y = point.point_in_grid
     links = [grid[d[0]][d[1]] for d in [(x-1, y),(x,y - 1),(x,y + 1),(x+1,y)]]
     return [link for link in links if link.value != None]
 
-def manhattan(point,point2):
-    return abs(point.point[0] - point2.point[0]) + abs(point.point[1]-point2.point[1])
+def distance(point,point2):
+    return math.sqrt((point.point[0] - point2.point[0])**2 + (point.point[1]-point2.point[1])**2)
 
 def aStar(start, goal, grid):
     print("aStar("+str(start.point)+"="+str(start.point_in_grid)+",  "+str(goal.point)+"="+str(goal.point_in_grid)+")")
@@ -65,7 +66,7 @@ def aStar(start, goal, grid):
             else:
                 #If it isn't in the open set, calculate the G and H score for the node
                 node.G = current.G + current.move_cost(node)
-                node.H = manhattan(node, goal)
+                node.H = distance(node, goal)
                 
                 node.parent = current
                 openset.add(node)
