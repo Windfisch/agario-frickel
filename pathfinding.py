@@ -85,12 +85,15 @@ class PathfindingTesterStrategy:
         goaly = int((marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
         
         grid = []
+
+        interesting_cells = list(filter(lambda c : not c.is_food, self.c.player.world.cells.values()))
+
         for x in range(-grid_radius,grid_radius+1,grid_density):
             gridline = []
             for y in range(-grid_radius,grid_radius+1,grid_density):
                 val = 0
 
-                for cell in self.c.player.world.cells.values():
+                for cell in interesting_cells:
                     relpos = (cell.pos.x - (x+self.c.player.center.x), cell.pos.y - (y+self.c.player.center.y))
                     dist_sq = relpos[0]**2 + relpos[1]**2
                     if dist_sq < cell.size**2 *3:
