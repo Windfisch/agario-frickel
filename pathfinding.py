@@ -87,7 +87,7 @@ class PathfindingTesterStrategy:
         
         grid = []
 
-        interesting_cells = list(filter(lambda c : not c.is_food, self.c.player.world.cells.values()))
+        interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
 
         for x in range(-grid_radius,grid_radius+1,grid_density):
             gridline = []
@@ -106,6 +106,17 @@ class PathfindingTesterStrategy:
         path = aStar(grid[int(grid_radius/grid_density)][int(grid_radius/grid_density)], grid[goalx][goaly], grid)
         return path
 
+    def path_is_valid(self, path):
+        interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
+        for node in path:
+            for cell in interesting_cells:
+                relpos = (cell.pos.x - node.point[0], cell.pos.y - node.point[1])
+                dist_sq = relpos[0]**2 + relpos[1]**2
+                if dist_sq < cell.size**2 *2:
+                    return False
+
+        return True
+
     def process_frame(self):
         if marker_updated[0]:
             marker_updated[0]=False
@@ -123,6 +134,10 @@ class PathfindingTesterStrategy:
             relx, rely = self.path[0].point[0]-self.c.player.center.x, self.path[0].point[1]-self.c.player.center.y
             if relx*relx + rely*rely < (2*grid_density)**2:
                 self.path=self.path[1:]
+
+        if self.path and not self.path_is_valid(self.path):
+            print("recalculating!")
+            self.path = self.plan_path()
 
         if self.path:
             return self.path[0].point
