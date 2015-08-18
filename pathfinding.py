@@ -73,8 +73,8 @@ def aStar(start, goal, grid):
     raise ValueError('No Path Found')
 
 path = None
-grid_radius=1200
-grid_density=20
+grid_radius=1100
+grid_density=30
 
 class PathfindingTesterStrategy:
     def __init__(self, c):
