@@ -73,7 +73,7 @@ def aStar(start, goal, grid):
     
     raise ValueError('No Path Found')
 
-grid_radius=1100
+grid_radius=int(1100/30)*30
 grid_density=30
 
 class PathfindingTesterStrategy:
@@ -82,13 +82,14 @@ class PathfindingTesterStrategy:
         self.path = None
 
     def build_grid(self):
-        grid = []
+        grid = [[None for x in range(int(2*grid_radius//grid_density+1))] for x in range(int(2*grid_radius//grid_density+1))]
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
 
         for x in range(-grid_radius,grid_radius+1,grid_density):
-            gridline = []
+            gridx = (x+grid_radius) // grid_density
             for y in range(-grid_radius,grid_radius+1,grid_density):
+                gridy = (y+grid_radius) // grid_density
                 val = 0
 
                 for cell in interesting_cells:
@@ -96,9 +97,11 @@ class PathfindingTesterStrategy:
                     dist_sq = relpos[0]**2 + relpos[1]**2
                     if dist_sq < cell.size**2 *3:
                         val += 100000000
+                
+                if (gridx in [0,len(grid)-1] or gridy in [0, len(grid[gridx])-1]):
+                    val = None
 
-                gridline.append(Node(None if (x in [-grid_radius,grid_radius] or y in [-grid_radius,grid_radius]) else val, (self.c.player.center[0]+x,self.c.player.center[1]+y), (int((x+grid_radius)/grid_density), int((y+grid_radius)/grid_density))))
-            grid.append(gridline)
+                grid[gridx][gridy] = Node(val, (self.c.player.center[0]+x,self.c.player.center[1]+y), (gridx, gridy))
 
         return grid
 
