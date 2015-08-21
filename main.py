@@ -18,17 +18,24 @@ sub = DummySubscriber()
 c = client.Client(sub)
 stats = stats.Stats()
 
-# find out server and token to connect
-try:
-    token = sys.argv[1]
-    addr, *_ = utils.get_party_address(token)
-except:
-    addr, token, *_ = utils.find_server()
+for i in range(1,10): # 10 connection attempts
+    print("trying to connect, attempt "+str(i))
+    try:
+        # find out server and token to connect
+        try:
+            token = sys.argv[1]
+            addr, *_ = utils.get_party_address(token)
+        except:
+            addr, token, *_ = utils.find_server()
 
-# connect
-c.connect(addr,token)
-c.send_facebook(
-            'g2gDYQFtAAAAEKO6L3c8C8/eXtbtbVJDGU5tAAAAUvOo7JuWAVSczT5Aj0eo0CvpeU8ijGzKy/gXBVCxhP5UO+ERH0jWjAo9bU1V7dU0GmwFr+SnzqWohx3qvG8Fg8RHlL17/y9ifVWpYUdweuODb9c=')
+        # connect
+        c.connect(addr,token)
+        c.send_facebook(
+                    'g2gDYQFtAAAAEKO6L3c8C8/eXtbtbVJDGU5tAAAAUvOo7JuWAVSczT5Aj0eo0CvpeU8ijGzKy/gXBVCxhP5UO+ERH0jWjAo9bU1V7dU0GmwFr+SnzqWohx3qvG8Fg8RHlL17/y9ifVWpYUdweuODb9c=')
+        break
+    except:
+        c.disconnect()
+
 
 c.player.nick="test cell pls ignore"
 
