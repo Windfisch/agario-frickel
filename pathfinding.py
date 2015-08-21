@@ -22,7 +22,7 @@ class Node:
 
 def siblings(point,grid):
     x,y = point.point_in_grid
-    links = [grid[d[0]][d[1]] for d in [(x-1, y),(x,y - 1),(x,y + 1),(x+1,y)]]
+    links = [grid[d[0]][d[1]] for d in [(x-1, y),(x-1,y-1),(x,y - 1),(x+1,y-1),(x+1,y),(x+1,y+1),(x,y + 1),(x-1,y+1)]]
     return [link for link in links if link.value != None]
 
 def distance(point,point2):
