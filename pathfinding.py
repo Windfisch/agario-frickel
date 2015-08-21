@@ -81,10 +81,7 @@ class PathfindingTesterStrategy:
         self.c = c
         self.path = None
 
-    def plan_path(self):
-        goalx = int((marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
-        goaly = int((marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
-        
+    def build_grid(self):
         grid = []
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
@@ -102,6 +99,14 @@ class PathfindingTesterStrategy:
 
                 gridline.append(Node(None if (x in [-grid_radius,grid_radius] or y in [-grid_radius,grid_radius]) else val, (self.c.player.center[0]+x,self.c.player.center[1]+y), (int((x+grid_radius)/grid_density), int((y+grid_radius)/grid_density))))
             grid.append(gridline)
+
+        return grid
+
+    def plan_path(self):
+        goalx = int((marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
+        goaly = int((marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
+        
+        grid = self.build_grid()
 
         path = aStar(grid[int(grid_radius/grid_density)][int(grid_radius/grid_density)], grid[goalx][goaly], grid)
         return path
