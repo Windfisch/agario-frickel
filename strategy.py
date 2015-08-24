@@ -219,8 +219,13 @@ class Strategy:
             forbidden_intervals = merge_intervals(forbidden_intervals)
 
             allowed_intervals = invert_angle_intervals(forbidden_intervals)
+            
+            try:
+                (a,b) = find_largest_angle_interval(allowed_intervals)
+            except:
+                print("TODO FIXME: need to handle no runaway direction being available!")
+                (a,b) = (0,0)
 
-            (a,b) = find_largest_angle_interval(allowed_intervals)
             runaway_angle = (a+b)/2
             runaway_x, runaway_y = (self.c.player.center[0]+int(100*math.cos(runaway_angle))), (self.c.player.center[1]+int(100*math.sin(runaway_angle)))
             
