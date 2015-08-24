@@ -273,10 +273,10 @@ def draw_frame():
             pygame.display.quit()
         if event.type == KEYDOWN:
             if event.key == K_s:
-                if not input and bot_input:
+                if event.mod & KMOD_SHIFT and (input or bot_input):
                     input = False
                     bot_input = False
-                elif not input and not bot_input:
+                elif not input and bot_input:
                     input = True
                     bot_input = False
                 else:
@@ -291,11 +291,11 @@ def draw_frame():
                 marker[event.button-1] = win_to_world_pt(event.pos, c.player.center)
                 marker_updated[event.button-1] = True
                 print("set marker "+str(event.button-1)+" to "+str(event.pos))
+        if event.type == KEYDOWN:
+            if event.key == K_w:
+                c.send_shoot()
+            if event.key == K_SPACE:
+                c.send_split()
         if input:
-            if event.type == KEYDOWN:
-                if event.key == K_w:
-                    c.send_shoot()
-                if event.key == K_SPACE:
-                    c.send_split()
             if event.type == MOUSEMOTION:
                     c.send_target(*win_to_world_pt(event.pos, c.player.center))

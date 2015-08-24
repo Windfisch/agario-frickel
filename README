@@ -7,5 +7,5 @@ move mouse  = move
 left click, space  = split
 right click, w = eject some mass
 r = respawn
-s = lock input. cycles through: user lock -> user and bot lock -> bot lock -> no lock
+s = lock input. toggle between "user controls" and "bot controls". hold shift for "nobody controls"
 esc = quit
