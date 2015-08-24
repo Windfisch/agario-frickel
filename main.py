@@ -27,6 +27,11 @@ for i in range(1,10): # 10 connection attempts
             token = sys.argv[1]
             addr, *_ = utils.get_party_address(token)
             print("using party token")
+
+            try:
+                nick = sys.argv[2]
+            except:
+                nick = "test cell pls ignore"
         except:
             addr, token, *_ = utils.find_server()
             print("joining random game")
@@ -40,7 +45,7 @@ for i in range(1,10): # 10 connection attempts
         c.disconnect()
 
 
-c.player.nick="test cell pls ignore"
+c.player.nick=nick
 
 
 # initialize GUI
