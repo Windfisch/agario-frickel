@@ -3,7 +3,9 @@ from interval_utils import *
 import gui
 import random
 
-friendly_players=["Windfisch","windfisch","Cyanide","cyanide"]
+friendly_players=["Windfisch","windfisch","Cyanide","cyanide"] +\
+    ["Midna","Nayru","Farore","Din","Ezelo","Navi","Zelda","Tetra","Link","Ciela","Linebeck","Salia","Epona","Shiek"] +\
+    ["Vaati","Ganon","Ganondorf","Ghirahim","Agahnim"]
 
 class Strategy:
     def __init__(self, c):
@@ -111,7 +113,7 @@ class Strategy:
         my_smallest = min(self.c.player.own_cells, key=lambda cell : cell.mass)
         my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
 
-        friendly_cells = list(filter(lambda c : c.is_virus or c.name in friendly_players, self.c.world.cells.values()))
+        friendly_cells = list(filter(lambda c : c.name in friendly_players, self.c.world.cells.values()))
 
         if friendly_cells:
             dist_to_friend = min(map(lambda c : (self.c.player.center-c.pos).len() - max(my_largest.size, c.size), friendly_cells))
