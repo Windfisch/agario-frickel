@@ -162,7 +162,7 @@ class Strategy:
             try:
                 my_cell.movement_angle
             except AttributeError:
-                print("FUUUU")
+                print("cannot calculate shoot angle, too few backlog")
                 continue
             # check if ejecting mass would feed one friend
             possibly_feedable_cells = list(filter(lambda c : can_feed(my_cell, c), self.c.world.cells.values()))
@@ -241,7 +241,6 @@ class Strategy:
                 if self.target_cell not in self.c.world.cells.values() or (not self.edible(self.target_cell) and not self.target_cell in friendly_cells):
                     self.target_cell = None
                     self.has_target = False
-                    print("target_cell does not exist any more")
             elif self.target == tuple(self.c.player.center):
                 self.has_target = False
                 print("Reached random destination")
