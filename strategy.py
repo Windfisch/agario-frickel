@@ -121,7 +121,7 @@ class Strategy:
         if dist_to_friend < 20 or my_largest.mass < 60:
             if self.do_approach_friends: print("not approaching friends")
             self.do_approach_friends = False
-        elif dist_to_friend > 200 and my_largest.mass > 60 * 1*16:
+        elif dist_to_friend > 200 and my_largest.mass > 60 + 1*16:
             if not self.do_approach_friends: print("approaching friends")
             self.do_approach_friends = True
 
