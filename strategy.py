@@ -128,7 +128,7 @@ class Strategy:
             relpos = ((cell.pos[0]-self.c.player.center[0]),(cell.pos[1]-self.c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell.name in friendly_players):
+            if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell in friendly_cells):
                 try:
                     angle = math.atan2(relpos[1],relpos[0])
                     corridor_halfwidth = math.asin(cell.size / dist)
@@ -171,10 +171,10 @@ class Strategy:
                 gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
 
         # if however there's no enemy to avoid, try to feed a friend. or chase food or jizz randomly around
-        else:          
+        else:
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
-                if self.target_cell not in self.c.world.cells.values() or (not self.edible(self.target_cell) and not self.target_cell.name in friendly_players):
+                if self.target_cell not in self.c.world.cells.values() or (not self.edible(self.target_cell) and not self.target_cell in friendly_cells):
                     self.target_cell = None
                     self.has_target = False
                     print("target_cell does not exist any more")
