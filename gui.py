@@ -144,7 +144,7 @@ def generate_virus(spikes, spike_length, radius, global_coords):
 def draw_cell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     try:
-        mov_ang = cell.movement.angle()
+        mov_ang = cell.movement_angle
         p2 = cell.pos + Vec( math.cos(mov_ang + 10*math.pi/180), math.sin(mov_ang + 10*math.pi/180) ) * (cell.size+700)
         p3 = cell.pos + Vec( math.cos(mov_ang - 10*math.pi/180), math.sin(mov_ang - 10*math.pi/180) ) * (cell.size+700)
 

@@ -100,7 +100,7 @@ class EnhancingSubscriber(DummySubscriber):
             try:
                 oldpos = cell.poslog[-3-1]
                 cell.movement = (cell.pos - oldpos)/3
+                cell.movement_angle = cell.movement.angle()
             except (AttributeError, IndexError):
                 # no oldpos available
-                cell.movement = None
                 pass
