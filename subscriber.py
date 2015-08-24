@@ -86,11 +86,9 @@ class EnhancingSubscriber(DummySubscriber):
         for cid in self.c.world.cells:
             if cid not in self.history:
                 self.history[cid] = CellHistory()
-                print("unknown cell")
             
             self.history[cid].poslog.append(self.c.world.cells[cid].pos.copy())
             self.c.world.cells[cid].poslog = self.history[cid].poslog
-            print("poslog of size="+str(len(self.history[cid].poslog)))
             
             self.history[cid].stale = False
 

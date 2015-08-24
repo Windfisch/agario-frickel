@@ -151,7 +151,6 @@ def draw_cell(cell):
         cx2,cy2 = world_to_win_pt(p2,c.player.center)
         cx3,cy3 = world_to_win_pt(p3,c.player.center)
     except AttributeError:
-        print("wtf, no poslog available?!")
         cx2,cy2=cx,cy
         cx3,cy3=cx,cy
 
