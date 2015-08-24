@@ -6,6 +6,7 @@ from pygame.locals import *
 import sys
 import math
 import time
+from agarnet.agarnet.vec import Vec
 
 font_fallback = False
 try:
@@ -143,10 +144,17 @@ def generate_virus(spikes, spike_length, radius, global_coords):
 def draw_cell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     try:
-        cx2,cy2 = world_to_win_pt(cell.poslog[-2],c.player.center)
-    except:
+        mov_ang = cell.movement.angle()
+        p2 = cell.pos + Vec( math.cos(mov_ang + 10*math.pi/180), math.sin(mov_ang + 10*math.pi/180) ) * (cell.size+700)
+        p3 = cell.pos + Vec( math.cos(mov_ang - 10*math.pi/180), math.sin(mov_ang - 10*math.pi/180) ) * (cell.size+700)
+
+        cx2,cy2 = world_to_win_pt(p2,c.player.center)
+        cx3,cy3 = world_to_win_pt(p3,c.player.center)
+    except AttributeError:
         print("wtf, no poslog available?!")
         cx2,cy2=cx,cy
+        cx3,cy3=cx,cy
+
     radius = world_to_win_length(cell.size)
 
     if cell.is_virus:
@@ -164,9 +172,10 @@ def draw_cell(cell):
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
 
-        gfxdraw.filled_circle(screen, cx2, cy2, radius, (127,127,127))
         
         if not (cell.is_ejected_mass or cell.is_food):
+            gfxdraw.aapolygon(screen, [(cx,cy),(cx2,cy2),(cx3,cy3),(cx,cy)] ,(255,127,127))
+            
             gfxdraw.filled_circle(screen, cx, cy, radius, color)
             gfxdraw.aacircle(screen, cx, cy, radius, (0,0,0))
             

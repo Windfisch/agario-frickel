@@ -95,4 +95,14 @@ class EnhancingSubscriber(DummySubscriber):
             self.history[cid].stale = False
 
         self.history = {k: v for k, v in self.history.items() if v.stale == False}
+        
 
+        for cid in self.c.world.cells:
+            cell = self.c.world.cells[cid]
+            try:
+                oldpos = cell.poslog[-3-1]
+                cell.movement = (cell.pos - oldpos)/3
+            except (AttributeError, IndexError):
+                # no oldpos available
+                cell.movement = None
+                pass
