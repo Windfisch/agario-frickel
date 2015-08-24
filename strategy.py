@@ -3,6 +3,8 @@ from interval_utils import *
 import gui
 import random
 
+friendly_players=["Windfisch","windfisch","Cyanide","cyanide"]
+
 class Strategy:
     def __init__(self, c):
         self.target = (0,0)
@@ -105,8 +107,19 @@ class Strategy:
     def process_frame(self):
         runaway = False
         
-        my_smallest = min(map(lambda cell : cell.mass, self.c.player.own_cells))
-        my_largest = max(map(lambda cell : cell.mass, self.c.player.own_cells))
+        my_smallest = min(self.c.player.own_cells, key=lambda cell : cell.mass)
+        my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
+
+        friendly_cells = list(filter(lambda c : c.name in friendly_players, self.c.world.cells.values()))
+        if friendly_cells:
+            friend_to_feed = max(friendly_cells, key=lambda c:c.mass)
+            if friend_to_feed.mass < 1.25 * my_largest.mass:
+                print("friend to small")
+                friend_to_feed = None
+            if friend_to_feed != None and (self.target_cell != friend_to_feed):
+                print("now feeding "+friend_to_feed.name)
+            self.target_cell = friend_to_feed
+            self.has_target = True
 
 
         # enemy/virus avoidance
@@ -115,11 +128,14 @@ class Strategy:
             relpos = ((cell.pos[0]-self.c.player.center[0]),(cell.pos[1]-self.c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < my_largest and cell.mass < my_largest):
-                angle = math.atan2(relpos[1],relpos[0])
-                corridor_halfwidth = math.asin(cell.size / dist)
-                forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
-                runaway = True
+            if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell.name in friendly_players):
+                try:
+                    angle = math.atan2(relpos[1],relpos[0])
+                    corridor_halfwidth = math.asin(cell.size / dist)
+                    forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
+                    runaway = True
+                except:
+                    print("TODO FIXME: need to handle enemy cell which is in our centerpoint!")
         
         # wall avoidance
         if self.c.player.center[0] < self.c.world.top_left[1]+(self.c.player.total_size*2):
@@ -154,11 +170,11 @@ class Strategy:
             for i in forbidden_intervals:
                 gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
 
-        # if however there's no enemy to avoid, chase food or jizz randomly around
+        # if however there's no enemy to avoid, try to feed a friend. or chase food or jizz randomly around
         else:          
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
-                if self.target_cell not in self.c.world.cells.values() or not self.edible(self.target_cell):
+                if self.target_cell not in self.c.world.cells.values() or (not self.edible(self.target_cell) and not self.target_cell.name in friendly_players):
                     self.target_cell = None
                     self.has_target = False
                     print("target_cell does not exist any more")
@@ -176,7 +192,7 @@ class Strategy:
                     
                     self.has_target = True
                     self.color = (0,0,255)
-                    print("weight: ", self.weight_cell(self.target_cell))
+                    #print("weight: ", self.weight_cell(self.target_cell))
                     print("Found food at: " + str(food[0].pos))
                 else:
                     rx = self.c.player.center[0] + random.randrange(-400, 401)
