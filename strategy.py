@@ -12,6 +12,7 @@ class Strategy:
         self.target_cell = None
         self.color = (0,0,0)
         self.c = c
+        self.do_approach_friends = True
     
     def get_my_smallest(self):
         return sorted(self.c.player.own_cells, key = lambda x: x.mass)[0]
@@ -111,14 +112,29 @@ class Strategy:
         my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
 
         friendly_cells = list(filter(lambda c : c.is_virus or c.name in friendly_players, self.c.world.cells.values()))
+
         if friendly_cells:
+            dist_to_friend = min(map(lambda c : (self.c.player.center-c.pos).len() - max(my_largest.size, c.size), friendly_cells))
+        else:
+            dist_to_friend = 99999999
+
+        if dist_to_friend < 20 or my_largest.mass < 60:
+            if self.do_approach_friends: print("not approaching friends")
+            self.do_approach_friends = False
+        elif dist_to_friend > 200 and my_largest.mass > 60 * 1*16:
+            if not self.do_approach_friends: print("approaching friends")
+            self.do_approach_friends = True
+
+        if friendly_cells and self.do_approach_friends:
             friend_to_feed = max(friendly_cells, key=lambda c:c.mass)
             if friend_to_feed.mass < 1.25 * my_largest.mass:
                 print("friend too small")
                 friend_to_feed = None
-            if friend_to_feed != None and (self.target_cell != friend_to_feed):
-                print("now feeding "+friend_to_feed.name)
             if friend_to_feed:
+                gui.hilight_cell(friend_to_feed, (255,255,255),(255,127,127),30)
+                for c in self.c.player.own_cells:
+                    gui.hilight_cell(c, (255,255,255), (255,127,127), 20)
+
                 self.target_cell = friend_to_feed
                 self.has_target = True
         
@@ -126,7 +142,7 @@ class Strategy:
         # "False" means "No, definitely not"
         # "True" means "Maybe"
         def can_feed(this, that):
-            if that.is_food or that.is_ejected_mass:
+            if that.is_food or that.is_ejected_mass or that.size < 43: # too small cells cannot eat the ejected mass
                 return False
 
             relpos = this.pos-that.pos
@@ -150,7 +166,7 @@ class Strategy:
 
             good_intervals = []
             for feedable in possibly_feedable_cells:
-                print(feedable.name+" is feedable")
+                gui.hilight_cell(feedable, (255,192,127), (127,127,255))
                 if feedable not in friendly_cells:
                     break
 
@@ -172,7 +188,7 @@ class Strategy:
             relpos = ((cell.pos[0]-self.c.player.center[0]),(cell.pos[1]-self.c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell in friendly_cells):
+            if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell in friendly_cells) or (cell in friendly_cells) and dist < cell.size+10:
                 try:
                     angle = math.atan2(relpos[1],relpos[0])
                     corridor_halfwidth = math.asin(cell.size / dist)
@@ -208,7 +224,6 @@ class Strategy:
             self.target_cell = None
             
             self.color = (255,0,0)
-            print ("Running away: " + str((runaway_x-self.c.player.center[0], runaway_y-self.c.player.center[1])))
             
             # a bit of debugging information
             for i in forbidden_intervals:
@@ -236,8 +251,6 @@ class Strategy:
                     
                     self.has_target = True
                     self.color = (0,0,255)
-                    #print("weight: ", self.weight_cell(self.target_cell))
-                    print("Found food at: " + str(food[0].pos))
                 else:
                     rx = self.c.player.center[0] + random.randrange(-400, 401)
                     ry = self.c.player.center[1] + random.randrange(-400, 401)

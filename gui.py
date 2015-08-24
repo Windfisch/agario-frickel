@@ -61,6 +61,11 @@ def draw_circle(pos, r, color, filled=False, global_coords=True):
         gfxdraw.circle(screen, pos[0], pos[1], r, color)
     gfxdraw.aacircle(screen, pos[0], pos[1], r, color)
 
+def hilight_cell(cell, color_inner, color_outer, r=20):
+    draw_circle(cell.pos, cell.size+r, color_outer, True)
+    draw_circle(cell.pos, cell.size+r/2, color_inner, True)
+    draw_cell(cell)
+
 def draw_polygon(polygon, color, filled=False, global_coords=True):
     if len(polygon) > 2:
         if global_coords:
