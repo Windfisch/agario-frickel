@@ -48,6 +48,8 @@ gui.set_client(c)
 # initialize strategy
 strategy = Strategy(c)
 
+autorespawn_counter = 60
+
 # main loop
 while True:
     c.on_message()
@@ -63,3 +65,10 @@ while True:
         stats.log_pos(c.player.center)
         stats.log_mass(c.player.total_mass)
     gui.update()
+
+    if not c.player.is_alive:
+        if autorespawn_counter == 0:
+            c.send_respawn()
+            autorespawn_counter = 60
+        else:
+            autorespawn_counter-=1
