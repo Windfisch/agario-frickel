@@ -132,11 +132,13 @@ class Strategy:
                 friend_to_feed = None
             if friend_to_feed:
                 gui.hilight_cell(friend_to_feed, (255,255,255),(255,127,127),30)
-                for c in self.c.player.own_cells:
-                    gui.hilight_cell(c, (255,255,255), (255,127,127), 20)
 
                 self.target_cell = friend_to_feed
                 self.has_target = True
+        
+        if self.do_approach_friends:
+            for c in self.c.player.own_cells:
+                gui.hilight_cell(c, (255,255,255), (255,127,127), 20)
         
         # can this cell feed that cell?
         # "False" means "No, definitely not"
@@ -176,8 +178,9 @@ class Strategy:
             area = interval_area( intersection(good_intervals, canonicalize_angle_interval((my_cell.movement_angle - 10*math.pi/180, my_cell.movement_angle + 10*math.pi/180))) )
             success_rate += area / (2*10*math.pi/180) / len(list(self.c.player.own_cells))
 
-        if success_rate >= 0.5:
-            print("EJECT")
+
+        gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.98, color=(0,0,127))
+        if success_rate >= 0.98:
             self.c.send_shoot()
                 
                 
