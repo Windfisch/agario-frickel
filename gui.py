@@ -29,13 +29,38 @@ marker_updated = [True, True, True]
 
 screensize=(1280, 800)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
+
+def draw_bar(rect, val, thresh=None, min=0, max=1, color=(0,0,0), barcolor=None, exceedcolor=(255,0,0), threshcolor=None):
+    v = (val-min)/(max-min)
+    t = (thresh-min)/(max-min)
     
+    if barcolor == None:
+        barcolor_=color
+    else:
+        barcolor_=barcolor
+    if thresh != None and threshcolor==None:
+        threshcolor_ = ((128+color[0])//2, (128+color[1])//2, (128+color[2])//2)
+    else:
+        threshcolor_ = threshcolor
+
+    for i in range(0, 1 if v<t else 3):
+        draw_box(  ((rect[0][0]-i,rect[0][1]-i),(rect[1][0]+2*i, rect[1][1]+2*i)) , color if v<t or exceedcolor==None else exceedcolor, False, False)
+    
+    draw_box(((rect[0][0]+2,rect[0][1]+2), ((rect[1][0]-4)*v, rect[1][1]-4)), barcolor_, True, False)
+    
+    if thresh != None:
+        if exceedcolor != None and v >= t:
+            draw_box(((rect[0][0]+2  +  (rect[1][0]-4)*t   ,    rect[0][1]+2)            ,        ((rect[1][0]-4)*(v-t)  ,   rect[1][1]-4)), exceedcolor, True, False)
+        
+        draw_line((rect[0][0]+2+(rect[1][0]-4)*t, rect[0][1]+1), (rect[0][0]+2+(rect[1][0]-4)*t, rect[0][1]+rect[1][1]-1), threshcolor_, False)
+
+
 def draw_line(p1, p2, color, global_coords=True):
     if global_coords:
         p1 = world_to_win_pt(p1, c.player.center)
         p2 = world_to_win_pt(p2, c.player.center)
 
-    gfxdraw.line(screen, p1[0], p1[1], p2[0], p2[1], color)
+    gfxdraw.line(screen, int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]), color)
 
 def draw_box(rect, color, filled=False, global_coords=True):
     if global_coords:
