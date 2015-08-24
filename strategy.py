@@ -110,17 +110,61 @@ class Strategy:
         my_smallest = min(self.c.player.own_cells, key=lambda cell : cell.mass)
         my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
 
-        friendly_cells = list(filter(lambda c : c.name in friendly_players, self.c.world.cells.values()))
+        friendly_cells = list(filter(lambda c : c.is_virus or c.name in friendly_players, self.c.world.cells.values()))
         if friendly_cells:
             friend_to_feed = max(friendly_cells, key=lambda c:c.mass)
             if friend_to_feed.mass < 1.25 * my_largest.mass:
-                print("friend to small")
+                print("friend too small")
                 friend_to_feed = None
             if friend_to_feed != None and (self.target_cell != friend_to_feed):
                 print("now feeding "+friend_to_feed.name)
-            self.target_cell = friend_to_feed
-            self.has_target = True
+            if friend_to_feed:
+                self.target_cell = friend_to_feed
+                self.has_target = True
+        
+        # can this cell feed that cell?
+        # "False" means "No, definitely not"
+        # "True" means "Maybe"
+        def can_feed(this, that):
+            if that.is_food or that.is_ejected_mass:
+                return False
 
+            relpos = this.pos-that.pos
+            dist = relpos.len()
+            if dist == 0 or dist >= 700 + this.size + that.size:
+                return False
+            
+            return check_cell_in_interval(this.pos, that, (this.movement_angle - 10*math.pi/180, this.movement_angle + 10*math.pi/180))
+
+
+        success_rate = 0
+        for my_cell in self.c.player.own_cells:
+            try:
+                my_cell.movement_angle
+            except AttributeError:
+                print("FUUUU")
+                continue
+            # check if ejecting mass would feed one friend
+            possibly_feedable_cells = list(filter(lambda c : can_feed(my_cell, c), self.c.world.cells.values()))
+            possibly_feedable_cells.sort(key = lambda c : (my_cell.pos - c.pos).len())
+
+            good_intervals = []
+            for feedable in possibly_feedable_cells:
+                print(feedable.name+" is feedable")
+                if feedable not in friendly_cells:
+                    break
+
+                good_intervals += canonicalize_angle_interval( interval_occupied_by_cell(my_cell.pos, feedable) )
+
+            good_intervals = merge_intervals(good_intervals)
+            area = interval_area( intersection(good_intervals, canonicalize_angle_interval((my_cell.movement_angle - 10*math.pi/180, my_cell.movement_angle + 10*math.pi/180))) )
+            success_rate += area / (2*10*math.pi/180) / len(list(self.c.player.own_cells))
+
+        if success_rate >= 0.5:
+            print("EJECT")
+            self.c.send_shoot()
+                
+                
 
         # enemy/virus avoidance
         forbidden_intervals = []
