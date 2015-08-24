@@ -1,4 +1,5 @@
 from log import log
+from collections import deque
 import sys
 
 class DummySubscriber:
@@ -64,4 +65,34 @@ class DummySubscriber:
 
     def on_debug_line(self,x,y):
         log("debug line")
+
+class CellHistory:
+    def __init__(self):
+        self.poslog = deque(maxlen=10)
+        self.stale = False
+
+class EnhancingSubscriber(DummySubscriber):
+    def __init__(self):
+        self.c = None
+        self.history = {}
+
+    def set_client(self,c):
+        self.c = c
+    
+    def on_world_update_post(self):
+        for cid in self.history:
+            self.history[cid].stale = True
+
+        for cid in self.c.world.cells:
+            if cid not in self.history:
+                self.history[cid] = CellHistory()
+                print("unknown cell")
+            
+            self.history[cid].poslog.append(self.c.world.cells[cid].pos.copy())
+            self.c.world.cells[cid].poslog = self.history[cid].poslog
+            print("poslog of size="+str(len(self.history[cid].poslog)))
+            
+            self.history[cid].stale = False
+
+        self.history = {k: v for k, v in self.history.items() if v.stale == False}
 

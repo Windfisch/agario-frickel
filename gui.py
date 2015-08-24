@@ -142,6 +142,11 @@ def generate_virus(spikes, spike_length, radius, global_coords):
 
 def draw_cell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
+    try:
+        cx2,cy2 = world_to_win_pt(cell.poslog[-2],c.player.center)
+    except:
+        print("wtf, no poslog available?!")
+        cx2,cy2=cx,cy
     radius = world_to_win_length(cell.size)
 
     if cell.is_virus:
@@ -158,6 +163,8 @@ def draw_cell(cell):
             gfxdraw.aapolygon(screen, polygon2, color)
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
+
+        gfxdraw.filled_circle(screen, cx2, cy2, radius, (127,127,127))
         
         if not (cell.is_ejected_mass or cell.is_food):
             gfxdraw.filled_circle(screen, cx, cy, radius, color)

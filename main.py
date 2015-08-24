@@ -9,13 +9,14 @@ import time
 import random
 import gui
 import stats
-from subscriber import DummySubscriber
+from subscriber import EnhancingSubscriber
 from interval_utils import *
 from strategy import *
 
 # global vars
-sub = DummySubscriber()
+sub = EnhancingSubscriber()
 c = client.Client(sub)
+sub.set_client(c)
 stats = stats.Stats()
 
 for i in range(1,10): # 10 connection attempts
