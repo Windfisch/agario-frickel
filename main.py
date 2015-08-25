@@ -18,6 +18,11 @@ sub = EnhancingSubscriber()
 c = client.Client(sub)
 sub.set_client(c)
 stats = stats.Stats()
+            
+try:
+    nick = sys.argv[2]
+except:
+    nick = "test cell pls ignore"
 
 for i in range(1,10): # 10 connection attempts
     print("trying to connect, attempt "+str(i))
@@ -28,10 +33,6 @@ for i in range(1,10): # 10 connection attempts
             addr, *_ = utils.get_party_address(token)
             print("using party token")
 
-            try:
-                nick = sys.argv[2]
-            except:
-                nick = "test cell pls ignore"
         except:
             addr, token, *_ = utils.find_server()
             print("joining random game")
