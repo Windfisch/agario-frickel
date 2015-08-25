@@ -33,6 +33,9 @@ class StatData():
 def return_empty_list():
     return []
 
+def return_defaultdict_with_empty_list():
+    return defaultdict(return_empty_list)
+
 def return_zero():
     return 0
 
@@ -45,7 +48,7 @@ class Stats:
 
         if data == None:
             self.data = StatData()
-            self.data.version = 1
+            self.data.version = 2
 
             self.data.min_mass = 0
             self.data.max_mass = 0
@@ -58,8 +61,8 @@ class Stats:
             self.data.cell_defensiveness = {}
 
             self.data.size_vs_speed = defaultdict(return_defaultdict_with_zeros)
-            self.data.size_vs_visible_window = defaultdict(return_empty_list)
-            self.data.mass_vs_visible_window = defaultdict(return_empty_list)
+            self.data.size_vs_visible_window = defaultdict(return_defaultdict_with_empty_list)
+            self.data.mass_vs_visible_window = defaultdict(return_defaultdict_with_empty_list)
         else:
             self.data = data
         
@@ -91,10 +94,11 @@ class Stats:
         self.log_mass(self.c.player.total_mass)
         
         cells = self.c.world.cells.values()
-        own_cells = self.c.player.own_cells
+        own_cells = list(self.c.player.own_cells)
 
         own_total_size = sum( map(lambda cell : cell.size, own_cells) )
         own_total_mass = sum( map(lambda cell : cell.mass, own_cells) )
+        n_own_cells = len(own_cells)
 
         n = 3
         for cell in filter(lambda cell : not cell.is_food and not cell.is_virus and not cell.is_ejected_mass, cells):
@@ -109,8 +113,9 @@ class Stats:
         visible_width = max( map(lambda cell : cell.pos.x - cell.size, cells) ) - min( map(lambda cell : cell.pos.x + cell.size, cells) )
         visible_height = max( map(lambda cell : cell.pos.y - cell.size, cells) ) - min( map(lambda cell : cell.pos.y + cell.size, cells) )
 
-        self.data.size_vs_visible_window[own_total_size].append((visible_width,visible_height))
-        self.data.mass_vs_visible_window[own_total_mass].append((visible_width,visible_height))
+        print("adding ["+str(n_own_cells)+"]["+str(own_total_size)+"]: ...")
+        self.data.size_vs_visible_window[n_own_cells][own_total_size].append((visible_width,visible_height))
+        self.data.mass_vs_visible_window[n_own_cells][own_total_mass].append((visible_width,visible_height))
 
     def save(self,filename):
         pickle.dump(self.data, open(filename,"wb"))
@@ -124,9 +129,11 @@ class Stats:
         self.data.max_mass = max(self.data.max_mass, data2.max_mass)
         
         for i in data2.size_vs_visible_window:
-            self.data.size_vs_visible_window[i] += data2.size_vs_visible_window[i]
+            for j in data2.size_vs_visible_window[i]:
+                self.data.size_vs_visible_window[i][j] += data2.size_vs_visible_window[i][j]
         for i in data2.mass_vs_visible_window:
-            self.data.mass_vs_visible_window[i] += data2.mass_vs_visible_window[i]
+            for j in data2.mass_vs_visible_window[i]:
+                self.data.mass_vs_visible_window[i][j] += data2.mass_vs_visible_window[i][j]
 
         for i in data2.size_vs_speed:
             for j in data2.size_vs_speed[i]:
@@ -168,18 +175,18 @@ class Stats:
         
         print("size**"+str(best[0])+" * speed = "+str(best[1])  )
 
-    def analyze_visible_window(self):
+    def analyze_visible_window_helper(self, foo_vs_visible_window, verbose=False):
         svw = {}
         ratios = []
-        print("size\tdiag")
-        for size, rects in sorted(self.data.size_vs_visible_window.items(), key=lambda x:x[0]):
+        if verbose: print("size\tdiag")
+        for size, rects in sorted(foo_vs_visible_window.items(), key=lambda x:x[0]):
             maxwidth = quantile(sorted(map(lambda x:x[0], rects)), 0.95)
             maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.95)
 
             svw[size] = (maxwidth,maxheight)
             ratios += [maxwidth/maxheight]
         
-            print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2)))
+            if verbose: print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2)))
         
         print ("median ratio = "+str(quantile(sorted(ratios),0.5)))
 
@@ -196,3 +203,11 @@ class Stats:
         best = min(coeff_vs_stddev, key=lambda v:v[2])
 
         print("diag / size**"+str(best[0])+" = "+str(best[1]))
+
+    def analyze_visible_window(self):
+        for ncells in sorted(self.data.size_vs_visible_window.keys()):
+            print("\nwith "+str(ncells)+" cells, depending on sum(size)")
+            self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells])
+        for ncells in sorted(self.data.mass_vs_visible_window.keys()):
+            print("\nwith "+str(ncells)+" cells, depending on sum(mass)")
+            self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells])
