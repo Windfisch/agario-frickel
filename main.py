@@ -80,4 +80,6 @@ while gui.running:
         else:
             autorespawn_counter-=1
 
+stats.save("stats.pickle")
+
 print("bye")
