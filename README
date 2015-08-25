@@ -10,3 +10,6 @@ s = lock input. toggle between "user controls" and "bot controls". hold shift fo
 move mouse  = move
 mouse left/mid/right click: set markers (currently unused)
 esc = quit
+
+the stats.py module automatically creates/overwrites the stats.pickle file (roughly 1MB per 5 minutes currently)
+which can be loaded using Stats.load() and analyzed using the Stats.analyze_* functions, or using analyze.py

@@ -117,6 +117,21 @@ class Stats:
     def load(filename):
         return Stats(None, pickle.load(open(filename,"rb")))
 
+    def merge(self, filename):
+        data2 = pickle.load(open(filename,"rb"))
+        self.data.min_mass = min(self.data.min_mass, data2.min_mass)
+        self.data.max_mass = max(self.data.max_mass, data2.max_mass)
+        
+        for i in data2.size_vs_visible_window:
+            self.data.size_vs_visible_window[i] += data2.size_vs_visible_window[i]
+        for i in data2.mass_vs_visible_window:
+            self.data.mass_vs_visible_window[i] += data2.mass_vs_visible_window[i]
+
+        for i in data2.size_vs_speed:
+            for j in data2.size_vs_speed[i]:
+                self.data.size_vs_speed[i][j] += data2.size_vs_speed[i][j]
+
+
     
     def analyze_speed(self):
         results=[]
@@ -125,7 +140,7 @@ class Stats:
             average = quantile(values, 0.5)
             maximum = quantile(values, 0.8)
 
-            results += [(size,maximum,average,minimum,False,False,False,len(values))]
+            results += [(size,maximum,average,minimum,False,False,False,sum(values.values()))]
       
         # mark outliers
         for i in range(1, len(results)-1):
@@ -145,8 +160,9 @@ class Stats:
             coeff_vs_stddev += [(coeff, avg(products), stddev(normalize(products)))]
 
         best = min(coeff_vs_stddev, key=lambda v:v[2])
-        print("size**"+str(best[0])+" * speed = "+str(best[1])  )
 
         print("size\tcalc\tmax\tavg\tmin\t\tndata")
         for size, maximum, average, minimum, maxoutlier, avgoutlier, minoutlier, ndata in results:
             print(str(size) + ":\t" + "%.1f" % (best[1] / size**best[0]) + "\t" + ("*" if maxoutlier else "") + str(maximum) + "\t" + ("*" if avgoutlier else "") + str(average) + "\t" + ("*" if minoutlier else "") + str(minimum) + "\t\t" + str(ndata))
+        
+        print("size**"+str(best[0])+" * speed = "+str(best[1])  )
