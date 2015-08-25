@@ -12,5 +12,6 @@ for f in files[1:]:
     s.merge(f)
 
 s.analyze_speed()
+print("\n" + "-"*40 + "\n")
 s.analyze_visible_window()
 

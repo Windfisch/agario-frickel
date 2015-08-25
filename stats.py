@@ -171,6 +171,7 @@ class Stats:
     def analyze_visible_window(self):
         svw = {}
         ratios = []
+        print("size\tdiag")
         for size, rects in sorted(self.data.size_vs_visible_window.items(), key=lambda x:x[0]):
             maxwidth = quantile(sorted(map(lambda x:x[0], rects)), 0.95)
             maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.95)
@@ -180,4 +181,18 @@ class Stats:
         
             print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2)))
         
-        print (quantile(sorted(ratios),0.5))
+        print ("median ratio = "+str(quantile(sorted(ratios),0.5)))
+
+        coeff_vs_stddev=[]
+        for coeff in [x/100 for x in range(10,100,1)]:
+            quotients = []
+            for size, rect in svw.items():
+                if size != 0:
+                    diag = math.sqrt(rect[0]**2+rect[1]**2)
+                    quotients += [diag / size**coeff]
+            
+            coeff_vs_stddev += [(coeff, avg(quotients), stddev(normalize(quotients)))]
+
+        best = min(coeff_vs_stddev, key=lambda v:v[2])
+
+        print("diag / size**"+str(best[0])+" = "+str(best[1]))
