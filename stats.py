@@ -102,7 +102,7 @@ class Stats:
                 for i in range(1,n+1):
                     cellspeed += (cell.poslog[-i] - cell.poslog[-i-1]).len() / n
                 
-                cellspeed = int(cellspeed)
+                cellspeed = int(cellspeed*10)/10
                 self.data.size_vs_speed[cell.size][cellspeed] += 1
 
         visible_width = max( map(lambda cell : cell.pos.x - cell.size, cells) ) - min( map(lambda cell : cell.pos.x + cell.size, cells) )
