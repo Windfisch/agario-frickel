@@ -17,7 +17,7 @@ from strategy import *
 sub = EnhancingSubscriber()
 c = client.Client(sub)
 sub.set_client(c)
-stats = stats.Stats()
+stats = stats.Stats(c)
             
 try:
     nick = sys.argv[2]
@@ -69,8 +69,8 @@ while True:
         if gui.bot_input:
             c.send_target(target[0], target[1])
 
-        stats.log_pos(c.player.center)
-        stats.log_mass(c.player.total_mass)
+        stats.process_frame()
+
     gui.update()
 
     if not c.player.is_alive:

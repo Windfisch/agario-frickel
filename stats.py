@@ -1,7 +1,8 @@
 import time
 
 class Stats:
-    def __init__(self):
+    def __init__(self,c):
+        self.c = c
         self.min_mass = 0
         self.max_mass = 0
         self.current_mass = 0
@@ -34,3 +35,7 @@ class Stats:
         
     def get_last_steps(self, list, steps = 10):
         return list[-steps:]
+
+    def process_frame(self):
+        self.log_pos(self.c.player.center)
+        self.log_mass(self.c.player.total_mass)
