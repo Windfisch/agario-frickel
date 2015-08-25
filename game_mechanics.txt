@@ -1,0 +1,7 @@
+can eject: if size >= 60 i.e. mass >= 35 
+eject makes me lose 16 mass
+eject distance is between (600+my.size) and (700+my.size), about 10-15 deg deviation
+can eat ejected mass if mass >= 18 i.e. size >= 43
+
+cell can eat us, if their size/mass(??) is at least 1.25* our size/mass
+

@@ -3,9 +3,10 @@ prerequisites: python3, pygame and websocket-client
 git submodule update --init
 python3 main.py
 
-move mouse  = move
-left click, space  = split
-right click, w = eject some mass
+space  = split
+w = eject some mass
 r = respawn
 s = lock input. toggle between "user controls" and "bot controls". hold shift for "nobody controls"
+move mouse  = move
+mouse left/mid/right click: set markers (currently unused)
 esc = quit
