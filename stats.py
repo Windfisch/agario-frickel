@@ -1,4 +1,5 @@
 import time
+import math
 from collections import defaultdict
 import pickle
 from functools import reduce
@@ -7,13 +8,13 @@ def flatten(l):
     return reduce(lambda a,b:a+b, l)
 
 def quantile(values, q):
-    if not isinstance(values, list):
+    if isinstance(values, dict):
         return quantile(flatten(map(lambda x : [x[0]]*x[1], sorted(values.items(),key=lambda x:x[0]))), q)
     else:
         return values[ int(len(values)*q) ]
 
 def avg(values):
-    if isinstance(values, list):
+    if not isinstance(values, dict):
         return sum(values)/len(values)
     else:
         return int(sum(map( lambda x : x[0]*x[1], values.items() )) / sum(map(lambda x : x[1], values.items())))
@@ -166,3 +167,17 @@ class Stats:
             print(str(size) + ":\t" + "%.1f" % (best[1] / size**best[0]) + "\t" + ("*" if maxoutlier else "") + str(maximum) + "\t" + ("*" if avgoutlier else "") + str(average) + "\t" + ("*" if minoutlier else "") + str(minimum) + "\t\t" + str(ndata))
         
         print("size**"+str(best[0])+" * speed = "+str(best[1])  )
+
+    def analyze_visible_window(self):
+        svw = {}
+        ratios = []
+        for size, rects in sorted(self.data.size_vs_visible_window.items(), key=lambda x:x[0]):
+            maxwidth = quantile(sorted(map(lambda x:x[0], rects)), 0.95)
+            maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.95)
+
+            svw[size] = (maxwidth,maxheight)
+            ratios += [maxwidth/maxheight]
+        
+            print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2)))
+        
+        print (quantile(sorted(ratios),0.5))

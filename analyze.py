@@ -12,3 +12,5 @@ for f in files[1:]:
     s.merge(f)
 
 s.analyze_speed()
+s.analyze_visible_window()
+
