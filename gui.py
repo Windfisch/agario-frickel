@@ -8,6 +8,8 @@ import math
 import time
 from agarnet.agarnet.vec import Vec
 
+running = True
+
 font_fallback = False
 try:
     from pygame import freetype
@@ -272,7 +274,7 @@ def draw_markers():
         draw_marker(marker[i], colors[i], marker_updated[i])
 
 def draw_frame():
-    global screen, movement, zoom, screensize, input, bot_input, marker, marker_updated
+    global screen, movement, zoom, screensize, input, bot_input, marker, marker_updated, running
 
     pygame.event.pump()
     clock.tick()
@@ -328,7 +330,7 @@ def draw_frame():
                     input = False
                     bot_input = True
             if event.key == K_ESCAPE:
-                pygame.quit()
+                running = False
             if event.key == K_r:
                 c.send_respawn()
         if event.type == MOUSEBUTTONDOWN:

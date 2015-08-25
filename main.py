@@ -58,7 +58,7 @@ strategy = Strategy(c)
 autorespawn_counter = 60
 
 # main loop
-while True:
+while gui.running:
     c.on_message()
     
     gui.draw_frame()
@@ -79,3 +79,5 @@ while True:
             autorespawn_counter = 60
         else:
             autorespawn_counter-=1
+
+print("bye")
