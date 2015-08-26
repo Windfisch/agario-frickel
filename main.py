@@ -71,6 +71,7 @@ while gui.running:
 
         stats.process_frame()
 
+    gui.draw_debug()
     gui.update()
 
     if not c.player.is_alive:

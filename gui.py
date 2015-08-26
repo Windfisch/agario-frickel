@@ -273,6 +273,19 @@ def draw_markers():
     for i in [0, 1, 2]:
         draw_marker(marker[i], colors[i], marker_updated[i])
 
+def draw_debug():
+    for cell in c.world.cells.values():
+        parent = None
+        try:
+            parent = cell.parent
+        except AttributeError:
+            pass
+
+        if parent != None:
+            draw_line(cell.pos, parent.pos,(255,0,0))
+            draw_circle(parent.pos,3,(255,0,0),True)
+
+
 def draw_frame():
     global screen, movement, zoom, screensize, input, bot_input, marker, marker_updated, running
 
