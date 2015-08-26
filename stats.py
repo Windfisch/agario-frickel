@@ -1,5 +1,6 @@
 import time
 import math
+import random
 from collections import defaultdict
 import pickle
 from functools import reduce
@@ -46,6 +47,8 @@ class Stats:
     def __init__(self,c,data=None):
         self.c = c
 
+        self.split_countdown = 27*20
+
         if data == None:
             self.data = StatData()
             self.data.version = 2
@@ -90,6 +93,11 @@ class Stats:
         return list[-steps:]
 
     def process_frame(self):
+        self.split_countdown -= 1
+        if (self.split_countdown <= 0):
+            self.split_countdown = int(27* (random.random() * 75))
+            self.c.send_split()
+
         self.log_pos(self.c.player.center)
         self.log_mass(self.c.player.total_mass)
         
@@ -113,7 +121,6 @@ class Stats:
         visible_width = max( map(lambda cell : cell.pos.x - cell.size, cells) ) - min( map(lambda cell : cell.pos.x + cell.size, cells) )
         visible_height = max( map(lambda cell : cell.pos.y - cell.size, cells) ) - min( map(lambda cell : cell.pos.y + cell.size, cells) )
 
-        print("adding ["+str(n_own_cells)+"]["+str(own_total_size)+"]: ...")
         self.data.size_vs_visible_window[n_own_cells][own_total_size].append((visible_width,visible_height))
         self.data.mass_vs_visible_window[n_own_cells][own_total_mass].append((visible_width,visible_height))
 
@@ -180,10 +187,12 @@ class Stats:
         ratios = []
         if verbose: print("size\tdiag")
         for size, rects in sorted(foo_vs_visible_window.items(), key=lambda x:x[0]):
-            maxwidth = quantile(sorted(map(lambda x:x[0], rects)), 0.95)
-            maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.95)
-
-            svw[size] = (maxwidth,maxheight)
+            maxwidth = quantile(sorted(map(lambda x:x[0], rects)), 0.75)
+            maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.75)
+            
+            if (math.sqrt(maxwidth**2+maxheight**2) < 4000):
+                # TODO FIXME 
+                svw[size] = (maxwidth,maxheight)
             ratios += [maxwidth/maxheight]
         
             if verbose: print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2)))
@@ -191,7 +200,7 @@ class Stats:
         print ("median ratio = "+str(quantile(sorted(ratios),0.5)))
 
         coeff_vs_stddev=[]
-        for coeff in [x/100 for x in range(10,100,1)]:
+        for coeff in [x/100 for x in range(0,100,1)]:
             quotients = []
             for size, rect in svw.items():
                 if size != 0:
@@ -204,10 +213,10 @@ class Stats:
 
         print("diag / size**"+str(best[0])+" = "+str(best[1]))
 
-    def analyze_visible_window(self):
+    def analyze_visible_window(self, verbose=False):
         for ncells in sorted(self.data.size_vs_visible_window.keys()):
             print("\nwith "+str(ncells)+" cells, depending on sum(size)")
-            self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells])
+            self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells], verbose)
         for ncells in sorted(self.data.mass_vs_visible_window.keys()):
             print("\nwith "+str(ncells)+" cells, depending on sum(mass)")
-            self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells])
+            self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells], verbose)
