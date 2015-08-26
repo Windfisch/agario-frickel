@@ -117,41 +117,79 @@ class EnhancingSubscriber(DummySubscriber):
         # create OtherPlayer entries
         otherplayers = {}
         for cell in self.c.world.cells.values():
+            playerid = None
             if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
                 playerid = (cell.name, cell.color)
-                if playerid not in otherplayers:
-                    otherplayers[playerid] = OtherPlayer(playerid)
-
-                cell.player = otherplayers[playerid]
-                cell.player.cells.add(cell)
+            elif cell.is_virus:
+                playerid = "virus"
+            elif cell.is_food:
+                playerid = "food"
+            elif cell.is_ejected_mass:
+                playerid = "ejected mass"
             else:
-                cell.player = None
+                playerid = "???"
+
+            if playerid not in otherplayers:
+                otherplayers[playerid] = OtherPlayer(playerid)
+
+            cell.player = otherplayers[playerid]
+            cell.player.cells.add(cell)
 
         # detect split cells and clean up obsolete parent references
         for cell in self.c.world.cells.values():
+            # create attribute if not already there
+            try:
+                cell.parent = cell.parent
+            except:
+                cell.parent = None
+                print("new cell, setting parent = None")
+
+            # clean up obsolete parent references
+            if cell.parent and cell.parent.cid not in self.c.world.cells:
+                cell.parent = None
+                print("obsolete parent")
+
+            # find split cells
             if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
-                # create attribute if not already there
+                is_split = False
                 try:
-                    cell.parent = cell.parent
-                except:
-                    cell.parent = None
-                    print("new cell, setting parent = None")
+                    if cell.parent == None and cell.movement.len() > 2 * mechanics.speed(cell.size):
+                            print("looks like a split!"+str(cell.movement.len() / mechanics.speed(cell.size)))
+                            is_split = True
+                except AttributeError:
+                    pass
 
-                # clean up obsolete parent references
-                if cell.parent and cell.parent.cid not in self.c.world.cells:
-                    cell.parent = None
-                    print("obsolete parent")
+                if is_split:
+                    history_len = len(cell.poslog)
+                    cell.parent = min(cell.player.cells, key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if c != cell and len(c.poslog) >= history_len else 999999)
 
+            elif cell.is_virus:
+                is_split = False
+                try:
+                    if cell.parent == None and cell.movement.len() > 0:
+                            print("split virus!")
+                            is_split = True
+                except AttributeError:
+                    pass
+
+                if is_split:
+                    cell.parent = min(cell.player.cells, key=lambda c : (c.pos - cell.poslog[0]).len() if c != cell else 999999)
                 
-                if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
-                    is_split = False
-                    try:
-                        if cell.parent == None and cell.movement.len() > 2 * mechanics.speed(cell.size):
-                                print("looks like a split!"+str(cell.movement.len() / mechanics.speed(cell.size)))
-                                is_split = True
-                    except AttributeError:
-                        pass
+            elif cell.is_ejected_mass:
+                is_split = False
+                try:
+                    if cell.parent == None and cell.movement.len() > 0:
+                            print("ejected mass!")
+                            is_split = True
+                except AttributeError:
+                    pass
 
-                    if is_split:
-                            history_len = len(cell.poslog)
-                            cell.parent = min(self.c.world.cells.values(), key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if c != cell and len(c.poslog) >= history_len else 999999)
+                if is_split:
+                    history_len = len(cell.poslog)
+                    try:
+                        cell.parent = min(filter(lambda c : not c.is_ejected_mass and not c.is_food and not c.is_virus and c.color == cell.color, self.c.world.cells.values()), key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if len(c.poslog) >= history_len else 999999)
+                    except ValueError:
+                        # if no possible parents are found, min wil raise a ValueError. ignore that.
+                        pass
+                
+                
