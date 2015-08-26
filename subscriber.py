@@ -1,6 +1,7 @@
 from log import log
 from collections import deque
 import sys
+import mechanics
 
 class DummySubscriber:
     def on_connect_error(self,s):
@@ -126,3 +127,31 @@ class EnhancingSubscriber(DummySubscriber):
             else:
                 cell.player = None
 
+        # detect split cells and clean up obsolete parent references
+        for cell in self.c.world.cells.values():
+            if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
+                # create attribute if not already there
+                try:
+                    cell.parent = cell.parent
+                except:
+                    cell.parent = None
+                    print("new cell, setting parent = None")
+
+                # clean up obsolete parent references
+                if cell.parent and cell.parent.cid not in self.c.world.cells:
+                    cell.parent = None
+                    print("obsolete parent")
+
+                
+                if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
+                    is_split = False
+                    try:
+                        if cell.parent == None and cell.movement.len() > 2 * mechanics.speed(cell.size):
+                                print("looks like a split!"+str(cell.movement.len() / mechanics.speed(cell.size)))
+                                is_split = True
+                    except AttributeError:
+                        pass
+
+                    if is_split:
+                            history_len = len(cell.poslog)
+                            cell.parent = min(self.c.world.cells.values(), key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if c != cell and len(c.poslog) >= history_len else 999999)
