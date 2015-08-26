@@ -161,7 +161,7 @@ class EnhancingSubscriber(DummySubscriber):
 
                 if is_split:
                     history_len = len(cell.poslog)
-                    cell.parent = min(cell.player.cells, key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if c != cell and len(c.poslog) >= history_len else 999999)
+                    cell.parent = min(cell.player.cells, key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if c != cell and len(c.poslog) >= history_len else float('inf'))
 
             elif cell.is_virus:
                 is_split = False
@@ -173,7 +173,7 @@ class EnhancingSubscriber(DummySubscriber):
                     pass
 
                 if is_split:
-                    cell.parent = min(cell.player.cells, key=lambda c : (c.pos - cell.poslog[0]).len() if c != cell else 999999)
+                    cell.parent = min(cell.player.cells, key=lambda c : (c.pos - cell.poslog[0]).len() if c != cell else float('inf'))
                 
             elif cell.is_ejected_mass:
                 is_split = False
@@ -187,7 +187,7 @@ class EnhancingSubscriber(DummySubscriber):
                 if is_split:
                     history_len = len(cell.poslog)
                     try:
-                        cell.parent = min(filter(lambda c : not c.is_ejected_mass and not c.is_food and not c.is_virus and c.color == cell.color, self.c.world.cells.values()), key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if len(c.poslog) >= history_len else 999999)
+                        cell.parent = min(filter(lambda c : not c.is_ejected_mass and not c.is_food and not c.is_virus and c.color == cell.color, self.c.world.cells.values()), key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if len(c.poslog) >= history_len else float('inf'))
                     except ValueError:
                         # if no possible parents are found, min wil raise a ValueError. ignore that.
                         pass

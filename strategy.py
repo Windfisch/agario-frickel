@@ -118,7 +118,7 @@ class Strategy:
         if friendly_cells:
             dist_to_friend = min(map(lambda c : (self.c.player.center-c.pos).len() - max(my_largest.size, c.size), friendly_cells))
         else:
-            dist_to_friend = 99999999
+            dist_to_friend = float('inf')
 
         if dist_to_friend < 20 or my_largest.mass < 60:
             if self.do_approach_friends: print("not approaching friends")
