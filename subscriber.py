@@ -71,6 +71,11 @@ class CellHistory:
         self.poslog = deque(maxlen=10)
         self.stale = False
 
+class OtherPlayer:
+    def __init__(self, playerid):
+        self.playerid = playerid
+        self.cells = set()
+
 class EnhancingSubscriber(DummySubscriber):
     def __init__(self):
         self.c = None
@@ -80,6 +85,8 @@ class EnhancingSubscriber(DummySubscriber):
         self.c = c
     
     def on_world_update_post(self):
+
+        # create and purge poslog history, movement and movement_angle
         for cid in self.history:
             self.history[cid].stale = True
 
@@ -104,3 +111,18 @@ class EnhancingSubscriber(DummySubscriber):
             except (AttributeError, IndexError):
                 # no oldpos available
                 pass
+
+
+        # create OtherPlayer entries
+        otherplayers = {}
+        for cell in self.c.world.cells.values():
+            if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
+                playerid = (cell.name, cell.color)
+                if playerid not in otherplayers:
+                    otherplayers[playerid] = OtherPlayer(playerid)
+
+                cell.player = otherplayers[playerid]
+                cell.player.cells.add(cell)
+            else:
+                cell.player = None
+
