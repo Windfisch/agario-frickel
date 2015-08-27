@@ -28,3 +28,5 @@ Result: visible diagonal = 369.399 * sum(sizes)**0.431776
 
 Also, analyze.py tells us that the viewport ratio is 1.7 : 1
 
+Additionally, if size<70, then the value 70 instead of "size" is used (found
+out by tinkering around manually)

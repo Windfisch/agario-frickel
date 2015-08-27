@@ -6,6 +6,7 @@ from pygame.locals import *
 import sys
 import math
 import time
+import mechanics
 from agarnet.agarnet.vec import Vec
 
 running = True
@@ -136,12 +137,31 @@ def draw_text(pos, text, color, font_size=16, global_coords=True, draw_centered=
 def update():
     pygame.display.update()
 
-def calc_zoom():
-    zoom1 = screensize[0] / 2051.
-    zoom2 = screensize[1] / 1216.
-    return max(zoom1,zoom2)
+def update_zoom():
+    global zoom
+    global calculated_visible_width, calculated_visible_height
 
-zoom = calc_zoom()
+    ratio = 1.7 # reverse engineered value.
+
+    size = sum(map(lambda cell : cell.size, c.player.own_cells))
+
+    # reverse engineered formula
+    diag_server = mechanics.viewport_diag(size) if size > 0 else 10000
+
+    # calculate screen diag, if we would have a screen with our width, but correct ratio
+    diag1 = math.sqrt(screensize[0]**2 * (1 + 1/1.7**2))
+    # calculate screen diag, if we would have a screen with our height, but correct ratio
+    diag2 = math.sqrt(screensize[1]**2 * (1 + 1.7**2))
+
+    # what we expect to be visible from server
+    calculated_visible_width  = diag_server / math.sqrt(1+1/ratio**2)
+    calculated_visible_height = diag_server / math.sqrt(1+  ratio**2)
+
+    zoom1 = screensize[0] / calculated_visible_width
+    zoom2 = screensize[1] / calculated_visible_height
+    
+    zoom = min(zoom1,zoom2) / 2
+
     
 def world_to_win_length(l):
     return int(l*zoom)
@@ -238,6 +258,19 @@ def draw_leaderboard():
         # screen.blit(surface, (5, next_y))
         next_y += surface.get_height()+5
 
+def draw_visible_window_borders():
+    global screen
+    
+    vignette_color=(192,192,192)
+    vignette_width = int(max(0, (screensize[0]-world_to_win_length(calculated_visible_width))/2))
+    vignette_height = int(max(0, (screensize[1]-world_to_win_length(calculated_visible_height))/2))
+
+    screen.fill(vignette_color, rect=((0,0),(vignette_width,screensize[1])))
+    screen.fill(vignette_color, rect=((screensize[0]-vignette_width,0),(vignette_width,screensize[1])))
+    screen.fill(vignette_color, rect=((0,0),(screensize[0],vignette_height)))
+    screen.fill(vignette_color, rect=((0,screensize[1]-vignette_height),(screensize[0],vignette_height)))
+
+
 def draw_world_borders():
     top = int((c.world.top_left[0] - c.player.center[1])*zoom + screensize[1]/2)
     left = int((c.world.top_left[1] - c.player.center[0])*zoom + screensize[0]/2)
@@ -291,8 +324,10 @@ def draw_frame():
 
     pygame.event.pump()
     clock.tick()
+    update_zoom()
  
     clear_screen()
+    draw_visible_window_borders()
     draw_world_borders() 
     
     food = list(filter(lambda x: x.is_food, c.world.cells.values()))
@@ -327,7 +362,7 @@ def draw_frame():
         if event.type == VIDEORESIZE:
             screensize = event.dict['size']
             screen=pygame.display.set_mode(screensize, HWSURFACE|DOUBLEBUF|RESIZABLE)
-            zoom = calc_zoom()
+            update_zoom()
             pygame.display.update()
         if event.type == QUIT: 
             pygame.display.quit()

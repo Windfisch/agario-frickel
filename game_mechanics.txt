@@ -5,3 +5,4 @@ can eat ejected mass if mass >= 18 i.e. size >= 43
 
 cell can eat us, if their size/mass(??) is at least 1.25* our size/mass
 
+zoom level is 369.399 * sum(own_cells.size) ** 0.431776
