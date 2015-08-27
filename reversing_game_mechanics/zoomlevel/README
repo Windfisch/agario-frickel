@@ -4,7 +4,7 @@ dunno.
 
 Data collected using bea9a124317, on 2015-08-25 *iirc*. (-> stats.pickle.xz)
 
-Data analyzed using a973a898619, with:
+Data analyzed using ea4515d0516, with:
 
 	python analyze.py stats.pickle > temp
 
