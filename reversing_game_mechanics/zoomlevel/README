@@ -1,0 +1,30 @@
+The goal is to find out the formula to calculate the appropriate zoom level,
+or equivalent: to calculate the size of the world viewport depending on, well,
+dunno.
+
+Data collected using bea9a124317, on 2015-08-25 *iirc*. (-> stats.pickle.xz)
+
+Data analyzed using a973a898619, with:
+
+	python analyze.py stats.pickle > temp
+
+then manually, create win.{size,mass}.{1,2,3,4,5,6} by cutting the
+analyze.py output into pieces (depending on number of cells).
+
+view with
+
+	gnuplot win.{size,mass}.gnuplot
+
+the gray lines in win.size.gnuplot denote the filtering conditions of
+filter_data.py
+
+Then merge and filter the data using
+
+	cat win.size.[123456] | python filter_data.py > win.size.all.filtered
+
+win.size.gnuplot will automatically fit a "a * size**b" - like function.
+
+Result: visible diagonal = 369.399 * sum(sizes)**0.431776
+
+Also, analyze.py tells us that the viewport ratio is 1.7 : 1
+

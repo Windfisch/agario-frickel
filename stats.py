@@ -190,12 +190,12 @@ class Stats:
             maxwidth = quantile(sorted(map(lambda x:x[0], rects)), 0.75)
             maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.75)
             
-            if (math.sqrt(maxwidth**2+maxheight**2) < 4000):
+            if math.sqrt(maxwidth**2+maxheight**2) < 4000:
                 # TODO FIXME 
                 svw[size] = (maxwidth,maxheight)
             ratios += [maxwidth/maxheight]
         
-            if verbose: print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2)))
+            if verbose: print(str(size)+"\t"+str(math.sqrt(maxwidth**2+maxheight**2))+"\t\t"+str(len(rects)))
         
         print ("median ratio = "+str(quantile(sorted(ratios),0.5)))
 
