@@ -6,6 +6,7 @@ import pickle
 from functools import reduce
 import mechanics
 import geometry
+#import numpy
 
 def fit_gaussian(l):
     mean = sum(l) / len(l)
