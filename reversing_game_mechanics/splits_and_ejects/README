@@ -1,0 +1,16 @@
+Data collected with revision 165dd41, four parallel instances, 30-45 minutes each.
+Analyzed with analyze.py
+
+split cell eject/split direction deviations: mean = -0.04179961392956227, stddev=0.4556678701725402, ndata=159
+	75% of the splits had a deviation smaller than 0.02 rad = 1.31 deg
+
+ejected mass eject/split direction deviations: mean = -0.0016847086620534303, stddev=0.872858965604425, ndata=352
+	75% of the splits had a deviation smaller than 0.46 rad = 26.47 deg
+
+
+split cell eject/split distances: mean = 388.2279635920042, stddev=222.71465106976927, ndata=314
+	75% of the values lie in the interval 381.25 plusminus 225.53
+
+ejected mass eject/split distances: mean = 442.90229450857305, stddev=189.2221703217239, ndata=252
+	75% of the values lie in the interval 535.71 plusminus 8.61
+
