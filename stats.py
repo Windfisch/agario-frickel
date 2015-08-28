@@ -19,7 +19,19 @@ def quantile(values, q):
     if isinstance(values, dict):
         return quantile(flatten(map(lambda x : [x[0]]*x[1], sorted(values.items(),key=lambda x:x[0]))), q)
     else:
-        return values[ int(len(values)*q) ]
+        try:
+            return sorted(values)[ int(len(values)*q) ]
+        except:
+            return 0
+
+def find_smallest_q_confidence_area(values, q):
+    try:
+        mid = min(values, key = lambda value : quantile(list(map(lambda x : abs(x-value), values)), q))
+        deviation = quantile(list(map(lambda x : abs(x-mid), values)),q)
+        #print(list(map(lambda x : abs(x-mid), values)))
+        return mid,deviation
+    except:
+        return 0,0
 
 def avg(values):
     if not isinstance(values, dict):
@@ -220,6 +232,12 @@ class Stats:
             for j in data2.size_vs_speed[i]:
                 self.data.size_vs_speed[i][j] += data2.size_vs_speed[i][j]
 
+        for i in data2.eject_deviations:
+            self.data.eject_deviations[i] += data2.eject_deviations[i]
+
+        for i in data2.eject_distlogs:
+            self.data.eject_distlogs[i] += data2.eject_distlogs[i]
+
 
     
     def analyze_speed(self):
@@ -289,11 +307,13 @@ class Stats:
 
     def analyze_visible_window(self, verbose=False):
         for ncells in sorted(self.data.size_vs_visible_window.keys()):
-            print("\nwith "+str(ncells)+" cells, depending on sum(size)")
-            self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells], verbose)
+            if len(self.data.size_vs_visible_window[ncells]) > 0:
+                print("\nwith "+str(ncells)+" cells, depending on sum(size)")
+                self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells], verbose)
         for ncells in sorted(self.data.mass_vs_visible_window.keys()):
-            print("\nwith "+str(ncells)+" cells, depending on sum(mass)")
-            self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells], verbose)
+            if len(self.data.mass_vs_visible_window[ncells]) > 0:
+                print("\nwith "+str(ncells)+" cells, depending on sum(mass)")
+                self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells], verbose)
 
     def analyze_deviations(self, celltype):
         ds = self.data.eject_deviations[celltype]
@@ -303,7 +323,18 @@ class Stats:
         except:
             mean, stddev = "???", "???"
 
+
+        quant = quantile(list(map(abs, ds)), 0.75)
+
         print(celltype+" eject/split direction deviations: mean = "+str(mean)+", stddev="+str(stddev)+", ndata="+str(len(ds)))
+        print("\t75%% of the splits had a deviation smaller than %.2f rad = %.2f deg" % (quant, quant*180/math.pi))
+        print("")
+        
+
+        #a,b = numpy.histogram(ds, bins=100)
+        #midpoints = map(lambda x : (x[0]+x[1])/2, zip(b, b[1:]))
+        #for n,x in zip(a,midpoints):
+        #    print(str(n) + "\t" + str(x))
 
     def analyze_distances(self, celltype):
         ds = [v[0] for v in self.data.eject_distlogs[celltype]]
@@ -314,3 +345,18 @@ class Stats:
             mean, stddev = "???", "???"
 
         print(celltype+" eject/split distances: mean = "+str(mean)+", stddev="+str(stddev)+", ndata="+str(len(ds)))
+        
+        #a,b = numpy.histogram(ds, bins=100)
+        #midpoints = list(map(lambda x : (x[0]+x[1])/2, zip(b, b[1:])))
+        #for n,x in zip(a,midpoints):
+        #    print(str(n) + "\t" + str(x))
+
+        #maxidx = max(range(0,len(a)), key = lambda i : a[i])
+        #print("\tmaximum at "+str(midpoints[maxidx]))
+
+        #q = 75 if celltype == "ejected mass" else 75
+        #quant = quantile(list(map(lambda v : abs(v-midpoints[maxidx]), ds)), q/100)
+        #print("\t"+str(q)+"% of values lie have a distance of at most "+str(quant)+" from the maximum")
+        
+        print("\t75%% of the values lie in the interval %.2f plusminus %.2f" % find_smallest_q_confidence_area(ds, 0.75))
+        print("")
