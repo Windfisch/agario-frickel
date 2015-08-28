@@ -196,11 +196,12 @@ class Strategy:
             if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell in friendly_cells) or (cell in friendly_cells) and dist < cell.size+10:
                 try:
                     angle = math.atan2(relpos[1],relpos[0])
-                    corridor_halfwidth = math.asin(cell.size / dist)
+                    corridor_halfwidth = math.asin(min(1, cell.size / dist))
                     forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
                     runaway = True
                 except:
                     print("TODO FIXME: need to handle enemy cell which is in our centerpoint!")
+                    raise
         
         # wall avoidance
         if self.c.player.center[0] < self.c.world.top_left[1]+(self.c.player.total_size*2):
