@@ -297,7 +297,20 @@ class Stats:
 
     def analyze_deviations(self, celltype):
         ds = self.data.eject_deviations[celltype]
-        if len(ds) == 0: return
 
-        mean, stddev = fit_gaussian(ds)
-        print(celltype+" eject/split direction deviations: mean = "+str(mean)+", stddev="+str(stddev))
+        try:
+            mean, stddev = fit_gaussian(ds)
+        except:
+            mean, stddev = "???", "???"
+
+        print(celltype+" eject/split direction deviations: mean = "+str(mean)+", stddev="+str(stddev)+", ndata="+str(len(ds)))
+
+    def analyze_distances(self, celltype):
+        ds = [v[0] for v in self.data.eject_distlogs[celltype]]
+
+        try:
+            mean, stddev = fit_gaussian(ds)
+        except:
+            mean, stddev = "???", "???"
+
+        print(celltype+" eject/split distances: mean = "+str(mean)+", stddev="+str(stddev)+", ndata="+str(len(ds)))

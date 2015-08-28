@@ -164,7 +164,7 @@ class Strategy:
             except AttributeError:
                 print("cannot calculate shoot angle, too few backlog")
                 continue
-            # check if ejecting mass would feed one friend
+            # check if ejecting mass would feed a friend
             possibly_feedable_cells = list(filter(lambda c : can_feed(my_cell, c), self.c.world.cells.values()))
             possibly_feedable_cells.sort(key = lambda c : (my_cell.pos - c.pos).len())
 
