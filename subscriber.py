@@ -69,7 +69,7 @@ class DummySubscriber:
 
 class CellHistory:
     def __init__(self):
-        self.poslog = deque(maxlen=10)
+        self.poslog = deque(maxlen=300)
         self.stale = False
 
 class OtherPlayer:
@@ -110,7 +110,6 @@ class EnhancingSubscriber(DummySubscriber):
                 cell.movement = (cell.pos - oldpos)/3
                 cell.movement_angle = cell.movement.angle()
             except (AttributeError, IndexError):
-                # no oldpos available
                 pass
 
 
@@ -142,16 +141,15 @@ class EnhancingSubscriber(DummySubscriber):
                 cell.parent = cell.parent
             except:
                 cell.parent = None
-                print("new cell, setting parent = None")
+                cell.calmed_down = True
 
             # clean up obsolete parent references
             if cell.parent and cell.parent.cid not in self.c.world.cells:
                 cell.parent = None
-                print("obsolete parent")
 
             # find split cells
+            is_split = False
             if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
-                is_split = False
                 try:
                     if cell.parent == None and cell.movement.len() > 2 * mechanics.speed(cell.size):
                             print("looks like a split!"+str(cell.movement.len() / mechanics.speed(cell.size)))
@@ -162,9 +160,13 @@ class EnhancingSubscriber(DummySubscriber):
                 if is_split:
                     history_len = len(cell.poslog)
                     cell.parent = min(cell.player.cells, key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if c != cell and len(c.poslog) >= history_len else float('inf'))
+                    try:
+                        cell.shoot_vec = cell.parent.movement.copy()
+                    except:
+                        cell.shoot_vec = None
+                    cell.calmed_down = False
 
             elif cell.is_virus:
-                is_split = False
                 try:
                     if cell.parent == None and cell.movement.len() > 0:
                             print("split virus!")
@@ -174,9 +176,10 @@ class EnhancingSubscriber(DummySubscriber):
 
                 if is_split:
                     cell.parent = min(cell.player.cells, key=lambda c : (c.pos - cell.poslog[0]).len() if c != cell else float('inf'))
+                    cell.shoot_vec = None # TODO FIXME: use direction of the last ejected blob feed into the mother virus
+                    cell.calmed_down = False
                 
             elif cell.is_ejected_mass:
-                is_split = False
                 try:
                     if cell.parent == None and cell.movement.len() > 0:
                             print("ejected mass!")
@@ -188,8 +191,17 @@ class EnhancingSubscriber(DummySubscriber):
                     history_len = len(cell.poslog)
                     try:
                         cell.parent = min(filter(lambda c : not c.is_ejected_mass and not c.is_food and not c.is_virus and c.color == cell.color, self.c.world.cells.values()), key=lambda c : (c.poslog[-history_len] - cell.poslog[-history_len]).len() if len(c.poslog) >= history_len else float('inf'))
+                        try:
+                            cell.shoot_vec = cell.parent.movement.copy()
+                        except:
+                            cell.shoot_vec = None
+                        cell.calmed_down = False
                     except ValueError:
-                        # if no possible parents are found, min wil raise a ValueError. ignore that.
+                        # if no possible parents are found, min will raise a ValueError. ignore that.
                         pass
-                
-                
+
+            if is_split:
+                cell.spawnpoint = cell.pos.copy()
+                cell.parentsize_when_spawned = cell.parent.size if cell.parent != None else None
+                cell.parentpos_when_spawned = cell.parent.pos.copy() if cell.parent != None else None
+        

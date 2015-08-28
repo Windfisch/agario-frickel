@@ -4,6 +4,13 @@ import random
 from collections import defaultdict
 import pickle
 from functools import reduce
+import mechanics
+import geometry
+
+def fit_gaussian(l):
+    mean = sum(l) / len(l)
+    stddev = math.sqrt(sum(map(lambda v : (v-mean)**2, l)) / len(l))
+    return mean, stddev
 
 def flatten(l):
     return reduce(lambda a,b:a+b, l)
@@ -47,11 +54,11 @@ class Stats:
     def __init__(self,c,data=None):
         self.c = c
 
-        self.split_countdown = 27*20
+        self.countdown = 27*20
 
         if data == None:
             self.data = StatData()
-            self.data.version = 2
+            self.data.version = 3
 
             self.data.min_mass = 0
             self.data.max_mass = 0
@@ -66,6 +73,9 @@ class Stats:
             self.data.size_vs_speed = defaultdict(return_defaultdict_with_zeros)
             self.data.size_vs_visible_window = defaultdict(return_defaultdict_with_empty_list)
             self.data.mass_vs_visible_window = defaultdict(return_defaultdict_with_empty_list)
+
+            self.data.eject_distlogs = {"virus" : [], "split cell" : [], "ejected mass" : []}
+            self.data.eject_deviations = {"virus" : [], "split cell" : [], "ejected mass" : []}
         else:
             self.data = data
         
@@ -93,10 +103,20 @@ class Stats:
         return list[-steps:]
 
     def process_frame(self):
-        self.split_countdown -= 1
-        if (self.split_countdown <= 0):
-            self.split_countdown = int(27* (random.random() * 75))
-            self.c.send_split()
+        self.countdown -= 1
+        if (self.countdown <= 0):
+            quick_followup = (random.random() < 0.1)
+            
+            if quick_followup:
+                self.countdown = 7
+            else:
+                self.countdown = int(27* (random.random() * 15))
+
+            what_to_do = random.random()
+            if what_to_do < 0.2:
+                self.c.send_split()
+            else:
+                self.c.send_shoot()
 
         self.log_pos(self.c.player.center)
         self.log_mass(self.c.player.total_mass)
@@ -123,6 +143,60 @@ class Stats:
 
         self.data.size_vs_visible_window[n_own_cells][own_total_size].append((visible_width,visible_height))
         self.data.mass_vs_visible_window[n_own_cells][own_total_mass].append((visible_width,visible_height))
+
+
+
+        # find ejected mass, split cells or viruses that have come to rest
+        for cell in cells:
+            if hasattr(cell,"parent") and cell.parent != None and not cell.calmed_down:
+                # we're only interested in cells with a parent set, because
+                # this also implies that we have tracked them since their
+                # creation.
+                # also, we're only interested in cells that are still flying
+                # as a result of being ejected/split.
+                
+                if not cell.is_food and not cell.is_ejected_mass and not cell.is_virus:
+                    expected_speed = mechanics.speed(cell.size)
+                    celltype = "split cell"
+                elif cell.is_virus:
+                    expected_speed = 1
+                    celltype = "virus"
+                elif cell.is_ejected_mass:
+                    expected_speed = 1
+                    celltype = "ejected mass"
+
+
+                if cell.movement.len() < expected_speed * 1.1:
+                    print(celltype+" has come to rest, nframes="+str(len(cell.poslog)))
+                    cell.calmed_down = True
+                    # TODO: speed log
+
+                    distance = (cell.spawnpoint - cell.pos).len()
+                    distance_from_parent = (cell.parentpos_when_spawned - cell.pos).len()
+
+                    self.data.eject_distlogs[celltype] += [(distance, distance_from_parent, cell.parentsize_when_spawned)]
+                    print("  flown distance = "+str(distance))
+
+                if len(cell.poslog) == 5:
+                    # calculate movement direction from the first 5 samples
+
+                    # first check whether they're on a straight line
+                    if geometry.is_colinear(cell.poslog) and cell.shoot_vec != None:
+                        print(celltype+" direction available!")
+                        fly_direction = cell.poslog[-1] - cell.poslog[0]
+                        fly_angle = math.atan2(fly_direction.y, fly_direction.x)
+
+                        shoot_angle = math.atan2(cell.shoot_vec.y, cell.shoot_vec.x)
+
+
+                        deviation = (fly_angle - shoot_angle) % (2*math.pi)
+                        if deviation > math.pi: deviation -= 2*math.pi
+                        print("  deviation = "+str(deviation*180/math.pi))
+
+                        self.data.eject_deviations[celltype] += [deviation]
+
+                    else:
+                        print(celltype+" did NOT fly in a straight line, ignoring...")
 
     def save(self,filename):
         pickle.dump(self.data, open(filename,"wb"))
@@ -220,3 +294,10 @@ class Stats:
         for ncells in sorted(self.data.mass_vs_visible_window.keys()):
             print("\nwith "+str(ncells)+" cells, depending on sum(mass)")
             self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells], verbose)
+
+    def analyze_deviations(self, celltype):
+        ds = self.data.eject_deviations[celltype]
+        if len(ds) == 0: return
+
+        mean, stddev = fit_gaussian(ds)
+        print(celltype+" eject/split direction deviations: mean = "+str(mean)+", stddev="+str(stddev))

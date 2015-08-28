@@ -201,7 +201,6 @@ class Strategy:
                     runaway = True
                 except:
                     print("TODO FIXME: need to handle enemy cell which is in our centerpoint!")
-                    raise
         
         # wall avoidance
         if self.c.player.center[0] < self.c.world.top_left[1]+(self.c.player.total_size*2):
