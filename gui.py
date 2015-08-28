@@ -33,6 +33,15 @@ marker_updated = [True, True, True]
 screensize=(1280, 800)
 screen=pygame.display.set_mode(screensize,HWSURFACE|DOUBLEBUF|RESIZABLE)
 
+vignette = 1.
+
+def enable_vignette(factor=0.15):
+    global vignette
+    if factor:
+        vignette = 1+factor
+    else:
+        vignette = 1
+
 def draw_bar(rect, val, thresh=None, min=0, max=1, color=(0,0,0), barcolor=None, exceedcolor=(255,0,0), threshcolor=None):
     v = (val-min)/(max-min)
     t = (thresh-min)/(max-min)
@@ -160,7 +169,7 @@ def update_zoom():
     zoom1 = screensize[0] / calculated_visible_width
     zoom2 = screensize[1] / calculated_visible_height
     
-    zoom = min(zoom1,zoom2) / 2
+    zoom = min(zoom1,zoom2) / vignette
 
     
 def world_to_win_length(l):
