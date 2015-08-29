@@ -1,5 +1,5 @@
-Data collected with revision 165dd41, four parallel instances, 30-45 minutes each.
-Analyzed with analyze.py
+Data collected with revision 165dd41, four parallel instances, 30-45 minutes each, on
+2015-08-28. Analyzed with analyze.py
 
 split cell eject/split direction deviations: mean = -0.04179961392956227, stddev=0.4556678701725402, ndata=159
 	75% of the splits had a deviation smaller than 0.02 rad = 1.31 deg
