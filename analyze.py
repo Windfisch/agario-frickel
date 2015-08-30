@@ -11,9 +11,9 @@ s = Stats.load(files[0])
 for f in files[1:]:
     s.merge(f)
 
-#s.analyze_speed()
+s.analyze_speed()
 print("\n" + "-"*40 + "\n")
-#s.analyze_visible_window(True)
+s.analyze_visible_window(False)
 for i in ["split cell", "ejected mass", "virus"]:
     s.analyze_deviations(i)
 print("")

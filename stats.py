@@ -26,6 +26,8 @@ def quantile(values, q):
             return 0
 
 def find_smallest_q_confidence_area(values, q):
+    """Calculates the (mid, delta) with the smallest delta, such that at least q * len(values)
+       lie within the interval [mid-delta, mid+delta]."""
     try:
         mid = min(values, key = lambda value : quantile(list(map(lambda x : abs(x-value), values)), q))
         deviation = quantile(list(map(lambda x : abs(x-mid), values)),q)
@@ -33,6 +35,14 @@ def find_smallest_q_confidence_area(values, q):
         return mid,deviation
     except:
         return 0,0
+
+def get_delta_confidence(values, mid, delta):
+    #"""Calculates which fraction of the values lie within [mid-delta, mid+delta]"""
+    #try:
+        return len(list(filter(lambda v : (mid-delta <= v and v <= mid+delta), values))) / len(values)
+    #except:
+    #    raise
+    #    return 0
 
 def avg(values):
     if not isinstance(values, dict):
@@ -359,11 +369,17 @@ class Stats:
         for ncells in sorted(self.data.size_vs_visible_window.keys()):
             if len(self.data.size_vs_visible_window[ncells]) > 0:
                 print("\nwith "+str(ncells)+" cells, depending on sum(size)")
-                self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells], verbose)
+                try:
+                    self.analyze_visible_window_helper(self.data.size_vs_visible_window[ncells], verbose)
+                except ZeroDivisionError:
+                    print("\toops.")
         for ncells in sorted(self.data.mass_vs_visible_window.keys()):
             if len(self.data.mass_vs_visible_window[ncells]) > 0:
                 print("\nwith "+str(ncells)+" cells, depending on sum(mass)")
-                self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells], verbose)
+                try:
+                    self.analyze_visible_window_helper(self.data.mass_vs_visible_window[ncells], verbose)
+                except ZeroDivisionError:
+                    print("\toops.")
 
     def analyze_deviations(self, celltype):
         ds = self.data.eject_deviations[celltype]
@@ -412,8 +428,13 @@ class Stats:
         #quant = quantile(list(map(lambda v : abs(v-midpoints[maxidx]), ds)), q/100)
         #print("\t"+str(q)+"% of values lie have a distance of at most "+str(quant)+" from the maximum")
         
-        print("\t75%% of the distances lie in the interval %.2f plusminus %.2f" % find_smallest_q_confidence_area(ds, 0.75))
-        print("\t75%% of the flight lengths lie in the interval %.2f plusminus %.2f" % find_smallest_q_confidence_area(ns, 0.75))
+        mid, delta = find_smallest_q_confidence_area(ds, 0.75)
+        print("\t75%% of the distances lie in the interval %.2f plusminus %.2f" % (mid,delta))
+        print("\t%2d%% of the distances lie in the interval %.2f plusminus %.2f" % (100*get_delta_confidence(ds, mid, delta*1.2), mid, delta*1.2) )
+        print("\tmax = %.2f" % (max(ds)))
+        mid, delta = find_smallest_q_confidence_area(ns, 0.75)
+        print("\t75%% of the flight lengths lie in the interval %.2f plusminus %.2f" % (mid,delta))
+        print("\t%2d%% of the flight lengths lie in the interval %.2f plusminus %.2f" % (100*get_delta_confidence(ns,mid,delta*1.2),mid,delta*1.2))
         print("")
 
     def analyze_virus_sizes(self):
@@ -424,7 +445,7 @@ class Stats:
     def analyze_remerge(self):
         relevant = list(filter(lambda r : r.is_parent_child, self.data.remerging.values()))
         durations = list(map(lambda r : r.end_time - r.begin_time, relevant))
-        print(fit_gaussian(durations))
+        print("75%% of the remerge durations lie at %.2f plusminus %.2f frames" % find_smallest_q_confidence_area(durations,0.75))
         waittimes = list(map(lambda r : r.begin_time - max(r.birth1, r.birth2), relevant))
-        print(fit_gaussian(waittimes))
-
+        print("75%% of the remerges were started after %.2f plusminus %.2f frames" % find_smallest_q_confidence_area(waittimes,0.75))
+        
