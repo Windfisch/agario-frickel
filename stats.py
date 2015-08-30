@@ -388,13 +388,17 @@ class Stats:
 
     def analyze_distances(self, celltype):
         ds = [v[0] for v in self.data.eject_distlogs[celltype]]
+        ns = [v[4] for v in self.data.eject_distlogs[celltype]]
 
         try:
             mean, stddev = fit_gaussian(ds)
+            meann, stddevn = fit_gaussian(ns)
         except:
             mean, stddev = "???", "???"
+            meann, stddevn = "???", "???"
 
-        print(celltype+" eject/split distances: mean = "+str(mean)+", stddev="+str(stddev)+", ndata="+str(len(ds)))
+        print(celltype+" eject/split distances: mean  = "+str(mean) +", stddev  ="+str(stddev) +", ndata="+str(len(ds)))
+        print(celltype+"                        meann = "+str(meann)+", stddevn ="+str(stddevn))
         
         #a,b = numpy.histogram(ds, bins=100)
         #midpoints = list(map(lambda x : (x[0]+x[1])/2, zip(b, b[1:])))
@@ -408,5 +412,19 @@ class Stats:
         #quant = quantile(list(map(lambda v : abs(v-midpoints[maxidx]), ds)), q/100)
         #print("\t"+str(q)+"% of values lie have a distance of at most "+str(quant)+" from the maximum")
         
-        print("\t75%% of the values lie in the interval %.2f plusminus %.2f" % find_smallest_q_confidence_area(ds, 0.75))
+        print("\t75%% of the distances lie in the interval %.2f plusminus %.2f" % find_smallest_q_confidence_area(ds, 0.75))
+        print("\t75%% of the flight lengths lie in the interval %.2f plusminus %.2f" % find_smallest_q_confidence_area(ns, 0.75))
         print("")
+
+    def analyze_virus_sizes(self):
+        print("\nI've seen the following %d virus sizes:" % len(self.data.observed_virus_sizes))
+        for size, ndata in sorted(self.data.observed_virus_sizes.items(), key=lambda x:x[0]):
+            print("\t%4d: %7d times" % (size, ndata))
+
+    def analyze_remerge(self):
+        relevant = list(filter(lambda r : r.is_parent_child, self.data.remerging.values()))
+        durations = list(map(lambda r : r.end_time - r.begin_time, relevant))
+        print(fit_gaussian(durations))
+        waittimes = list(map(lambda r : r.begin_time - max(r.birth1, r.birth2), relevant))
+        print(fit_gaussian(waittimes))
+
