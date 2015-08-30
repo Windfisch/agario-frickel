@@ -133,6 +133,11 @@ class Stats:
         for i in data2.eject_distlogs:
             self.data.eject_distlogs[i] += data2.eject_distlogs[i]
 
+        for i in self.data.observed_virus_sizes:
+            self.data.observed_virus_sizes[i] += data2.observed_virus_sizes[i]
+
+        self.data.remerging.update(data2.remerging)
+
     def log_mass(self, mass):
         self.data.mass_history.append((time.time(), mass))
         self.data.current_mass = mass
