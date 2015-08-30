@@ -81,11 +81,14 @@ class EnhancingSubscriber(DummySubscriber):
     def __init__(self):
         self.c = None
         self.history = {}
+        self.time = 0
 
     def set_client(self,c):
         self.c = c
     
     def on_world_update_post(self):
+        self.c.world.time = self.time
+        self.time += 1
 
         # create and purge poslog history, movement and movement_angle
         for cid in self.history:
@@ -105,6 +108,10 @@ class EnhancingSubscriber(DummySubscriber):
 
         for cid in self.c.world.cells:
             cell = self.c.world.cells[cid]
+
+            if not hasattr(cell, "spawntime"):
+                cell.spawntime = self.c.world.time
+
             try:
                 oldpos = cell.poslog[-3-1]
                 cell.movement = (cell.pos - oldpos)/3

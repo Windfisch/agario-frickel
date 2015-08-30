@@ -245,6 +245,7 @@ def draw_cell(cell):
             font_size = 16
             
             draw_text((cx, cy + radius + 10), cell.name, (0, 0, 0), font_size, False, True)
+            draw_text((cx, cy + radius + 10 + font_size), str(cell.cid), (0,0,0), font_size, False, True)
             # surface = draw_text(cell.name, (0, 0, 0), font_size)
             # screen.blit(surface, (cx - (surface.get_width()/2), cy + radius + 5))
             

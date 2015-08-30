@@ -63,6 +63,16 @@ def return_zero():
 def return_defaultdict_with_zeros():
     return defaultdict(return_zero)
 
+class ReMerging:
+    def __init__(self, size1, size2, birth1, birth2, is_parent_child, begin_time):
+        self.size1 = size1
+        self.size2 = size2
+        self.birth1 = birth1
+        self.birth2 = birth2
+        self.is_parent_child = is_parent_child
+        self.begin_time = begin_time
+        self.end_time = None
+
 class Stats:
     def __init__(self,c,data=None):
         self.c = c
@@ -71,7 +81,7 @@ class Stats:
 
         if data == None:
             self.data = StatData()
-            self.data.version = 3
+            self.data.version = 4
 
             self.data.min_mass = 0
             self.data.max_mass = 0
@@ -89,6 +99,9 @@ class Stats:
 
             self.data.eject_distlogs = {"virus" : [], "split cell" : [], "ejected mass" : []}
             self.data.eject_deviations = {"virus" : [], "split cell" : [], "ejected mass" : []}
+
+            self.data.observed_virus_sizes = defaultdict(return_zero)
+            self.data.remerging = {}
         else:
             self.data = data
         
@@ -158,6 +171,30 @@ class Stats:
         self.data.mass_vs_visible_window[n_own_cells][own_total_mass].append((visible_width,visible_height))
 
 
+        # log virus sizes
+        for cell in cells:
+            if cell.is_virus:
+                self.data.observed_virus_sizes[cell.size] += 1
+        
+        # detect re-merging cells
+        for cell in own_cells:
+            for cell2 in own_cells:
+                if cell2 != cell:
+                    dist = (cell.pos - cell2.pos).len()
+                    expected_dist = cell.size + cell2.size
+                    min_dist = max(cell.size, cell2.size)
+
+                    if (dist < (0.9 * expected_dist + 0.1 * min_dist)):
+                        is_parent_child = (cell == cell2.parent or cell2 == cell.parent)
+                        print("cells seem to be merging! they are "+ ("" if is_parent_child else "NOT ") + "parent and child")
+                        pair_id = (min(cell.cid,cell2.cid), max(cell.cid,cell2.cid))
+                        
+                        if pair_id not in self.data.remerging:
+                            self.data.remerging[pair_id] = ReMerging(cell.size, cell2.size, cell.spawntime, cell2.spawntime, is_parent_child, self.c.world.time)
+                        else:
+                            self.data.remerging[pair_id].end_time = self.c.world.time
+                
+
 
         # find ejected mass, split cells or viruses that have come to rest
         for cell in cells:
@@ -184,11 +221,18 @@ class Stats:
                     cell.calmed_down = True
                     # TODO: speed log
 
+                    # distance is calculated naively
                     distance = (cell.spawnpoint - cell.pos).len()
+
+                    # distance2 is calculated along the cell's path (will differ if the flight was not colinear)
+                    poslog = list(cell.poslog)
+                    speeds = list(map(lambda vecs : (vecs[0]-vecs[1]).len(), zip(poslog, poslog[1:])))
+                    distance2 = sum(speeds)
+
                     distance_from_parent = (cell.parentpos_when_spawned - cell.pos).len()
 
-                    self.data.eject_distlogs[celltype] += [(distance, distance_from_parent, cell.parentsize_when_spawned)]
-                    print("  flown distance = "+str(distance))
+                    self.data.eject_distlogs[celltype] += [(distance, distance2, distance_from_parent, cell.parentsize_when_spawned, len(cell.poslog), speeds)]
+                    print("  flown distance = %.2f / %.2f"%(distance,distance2))
 
                 if len(cell.poslog) == 5:
                     # calculate movement direction from the first 5 samples
@@ -284,7 +328,7 @@ class Stats:
             maxheight = quantile(sorted(map(lambda x:x[1], rects)), 0.75)
             
             if math.sqrt(maxwidth**2+maxheight**2) < 4000:
-                # TODO FIXME 
+                # TODO FIXME
                 svw[size] = (maxwidth,maxheight)
             ratios += [maxwidth/maxheight]
         
