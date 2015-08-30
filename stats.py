@@ -105,6 +105,34 @@ class Stats:
         else:
             self.data = data
         
+    def save(self,filename):
+        pickle.dump(self.data, open(filename,"wb"))
+
+    def load(filename):
+        return Stats(None, pickle.load(open(filename,"rb")))
+
+    def merge(self, filename):
+        data2 = pickle.load(open(filename,"rb"))
+        self.data.min_mass = min(self.data.min_mass, data2.min_mass)
+        self.data.max_mass = max(self.data.max_mass, data2.max_mass)
+        
+        for i in data2.size_vs_visible_window:
+            for j in data2.size_vs_visible_window[i]:
+                self.data.size_vs_visible_window[i][j] += data2.size_vs_visible_window[i][j]
+        for i in data2.mass_vs_visible_window:
+            for j in data2.mass_vs_visible_window[i]:
+                self.data.mass_vs_visible_window[i][j] += data2.mass_vs_visible_window[i][j]
+
+        for i in data2.size_vs_speed:
+            for j in data2.size_vs_speed[i]:
+                self.data.size_vs_speed[i][j] += data2.size_vs_speed[i][j]
+
+        for i in data2.eject_deviations:
+            self.data.eject_deviations[i] += data2.eject_deviations[i]
+
+        for i in data2.eject_distlogs:
+            self.data.eject_distlogs[i] += data2.eject_distlogs[i]
+
     def log_mass(self, mass):
         self.data.mass_history.append((time.time(), mass))
         self.data.current_mass = mass
@@ -254,34 +282,6 @@ class Stats:
 
                     else:
                         print(celltype+" did NOT fly in a straight line, ignoring...")
-
-    def save(self,filename):
-        pickle.dump(self.data, open(filename,"wb"))
-
-    def load(filename):
-        return Stats(None, pickle.load(open(filename,"rb")))
-
-    def merge(self, filename):
-        data2 = pickle.load(open(filename,"rb"))
-        self.data.min_mass = min(self.data.min_mass, data2.min_mass)
-        self.data.max_mass = max(self.data.max_mass, data2.max_mass)
-        
-        for i in data2.size_vs_visible_window:
-            for j in data2.size_vs_visible_window[i]:
-                self.data.size_vs_visible_window[i][j] += data2.size_vs_visible_window[i][j]
-        for i in data2.mass_vs_visible_window:
-            for j in data2.mass_vs_visible_window[i]:
-                self.data.mass_vs_visible_window[i][j] += data2.mass_vs_visible_window[i][j]
-
-        for i in data2.size_vs_speed:
-            for j in data2.size_vs_speed[i]:
-                self.data.size_vs_speed[i][j] += data2.size_vs_speed[i][j]
-
-        for i in data2.eject_deviations:
-            self.data.eject_deviations[i] += data2.eject_deviations[i]
-
-        for i in data2.eject_distlogs:
-            self.data.eject_distlogs[i] += data2.eject_distlogs[i]
 
 
     
