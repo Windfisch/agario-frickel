@@ -113,17 +113,17 @@ class Strategy:
         my_smallest = min(self.c.player.own_cells, key=lambda cell : cell.mass)
         my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
 
-        friendly_cells = list(filter(lambda c : c.name in friendly_players, self.c.world.cells.values()))
+        friendly_cells = list(filter(lambda c : c.is_virus or c.name in friendly_players, self.c.world.cells.values()))
 
         if friendly_cells:
             dist_to_friend = min(map(lambda c : (self.c.player.center-c.pos).len() - max(my_largest.size, c.size), friendly_cells))
         else:
             dist_to_friend = float('inf')
 
-        if dist_to_friend < 20 or my_largest.mass < 60:
+        if dist_to_friend < 20 or my_largest.mass < 36:
             if self.do_approach_friends: print("not approaching friends")
             self.do_approach_friends = False
-        elif dist_to_friend > 200 and my_largest.mass > 60 + 1*16:
+        elif dist_to_friend > 200 and my_largest.mass > 36 + 10*16:
             if not self.do_approach_friends: print("approaching friends")
             self.do_approach_friends = True
 

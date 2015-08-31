@@ -108,7 +108,7 @@ class Stats:
             self.data.mass_vs_visible_window = defaultdict(return_defaultdict_with_empty_list)
 
             self.data.eject_distlogs = {"virus" : [], "split cell" : [], "ejected mass" : []}
-            self.data.eject_deviations = {"virus" : [], "split cell" : [], "ejected mass" : []}
+            self.data.eject_deviations = {"virus" : [], "virus2" : [], "virus3" : [], "split cell" : [], "ejected mass" : []}
 
             self.data.observed_virus_sizes = defaultdict(return_zero)
             self.data.remerging = {}
@@ -173,7 +173,7 @@ class Stats:
 
     def process_frame(self):
         self.countdown -= 1
-        if (self.countdown <= 0):
+        if False and (self.countdown <= 0):
             quick_followup = (random.random() < 0.1)
             
             if quick_followup:
@@ -294,6 +294,30 @@ class Stats:
                         print("  deviation = "+str(deviation*180/math.pi))
 
                         self.data.eject_deviations[celltype] += [deviation]
+
+                        if (celltype == 'virus'):
+                            # FIXME so ugly
+                            try:
+                                shoot_angle = math.atan2(cell.shoot_vec2.y, cell.shoot_vec2.x)
+
+                                deviation = (fly_angle - shoot_angle) % (2*math.pi)
+                                if deviation > math.pi: deviation -= 2*math.pi
+                                print("  deviation2= "+str(deviation*180/math.pi))
+
+                                self.data.eject_deviations['virus2'] += [deviation]
+                            except AttributeError:
+                                print("virus2 not available, wtf?!")
+
+                            try:
+                                shoot_angle = math.atan2(cell.shoot_vec3.y, cell.shoot_vec3.x)
+
+                                deviation = (fly_angle - shoot_angle) % (2*math.pi)
+                                if deviation > math.pi: deviation -= 2*math.pi
+                                print("  deviation3= "+str(deviation*180/math.pi))
+
+                                self.data.eject_deviations['virus3'] += [deviation]
+                            except AttributeError:
+                                print("virus3 not available")
 
                     else:
                         print(celltype+" did NOT fly in a straight line, ignoring...")

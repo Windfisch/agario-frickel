@@ -214,9 +214,9 @@ class EnhancingSubscriber(DummySubscriber):
                             raise KeyError
                         else:
                             cell.shoot_vec  = cell.parent.pos - last_feed.poslog[0]
-                            cell.shoot_vec2 = last_feed.poslog[0] - last_feed.poslog[-1]
+                            cell.shoot_vec2 = last_feed.poslog[-1] - last_feed.poslog[0]
                             try:
-                                pos_when_shot = last_feed.parent.poslog[len(last_feed.poslog)]
+                                pos_when_shot = last_feed.parent.poslog[-len(last_feed.poslog)]
                                 cell.shoot_vec3 = cell.parent.pos - pos_when_shot
                             except:
                                 print("MOAAAHH")
