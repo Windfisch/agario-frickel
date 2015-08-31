@@ -52,6 +52,18 @@ EJECT/SPLIT DIRECTIONS
 	ejected mass eject/split direction deviations: mean = -0.021378484138331356, stddev=0.730695490707546, ndata=1585
 		75% of the splits had a deviation smaller than 0.39 rad = 22.16 deg
 
+	virus eject/split direction deviations: mean = -0.16497762078310707, stddev=0.07294211158929148, ndata=5
+		75% of the splits had a deviation smaller than 0.25 rad = 14.41 deg
+		(wrt "emitted mass begin -- parent virus")
+
+	virus2 eject/split direction deviations: mean = -0.001211356391619578, stddev=0.0038334565337591105, ndata=5
+		75% of the splits had a deviation smaller than 0.00 rad = 0.11 deg
+		(wrt "emitted mass flight direction")
+
+	virus3 eject/split direction deviations: mean = -0.13739240722341658, stddev=0.056773374975376475, ndata=5
+		75% of the splits had a deviation smaller than 0.21 rad = 11.82 deg
+		(wrt "emitter of the mass -- parent virus")
+
 
 
 
@@ -77,7 +89,7 @@ EJECT/SPLIT DISTANCES
 	virus                        meann = 42.666666666666664, stddevn =6.879922480183431
 		75% of the distances lie in the interval 510.53 plusminus 363.80
 		88% of the distances lie in the interval 510.53 plusminus 436.56
-		max = 580.08
+		max = 580.08 (ndata = 13)
 		75% of the flight lengths lie in the interval 45.00 plusminus 10.00
 		77% of the flight lengths lie in the interval 45.00 plusminus 12.00
 
