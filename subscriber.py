@@ -99,8 +99,11 @@ class EnhancingSubscriber(DummySubscriber):
             del self.victims[eater]
     
     def on_cell_eaten(self, eater_id, eaten_id):
-        if eater_id in self.c.world.cells and self.c.world.cells[eater_id].is_virus:
-            print("virus ate something!")
+        if eater_id in self.c.world.cells:
+            if self.c.world.cells[eater_id].is_virus:
+                print("virus ate something!")
+        else:
+            print("eater is not in world.cells, da fuq?")
         
         if eater_id not in self.victims:
             self.victims[eater_id] = []
