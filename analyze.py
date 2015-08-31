@@ -14,7 +14,7 @@ for f in files[1:]:
 s.analyze_speed()
 print("\n" + "-"*40 + "\n")
 s.analyze_visible_window(False)
-for i in ["split cell", "ejected mass", "virus"]:
+for i in ["split cell", "ejected mass", "virus", "virus2", "virus3"]:
     s.analyze_deviations(i)
 print("")
 for i in ["split cell", "ejected mass", "virus"]:
