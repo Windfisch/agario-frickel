@@ -58,7 +58,7 @@ class ProblemManager:
             if self.setup[prob][2]:
                 raise ProblemException
 
-probs = ProblemManager({"network lag":(100,5,True), "strategy lag":(5,2,False), "gui lag":(5,2,False), "high fps":(300,6,True), "low fps":(5,6,True)})
+probs = ProblemManager({"network lag":(100,5,True), "strategy lag":(5,2,False), "gui lag":(5,2,False), "high fps":(5,6,True), "low fps":(5,6,True)})
 
 
 if "--nogui" in sys.argv:
@@ -155,8 +155,8 @@ while gui.running:
         print("FPS: %3d" % fps)
         if fps < 24:
             probs.report("low fps")
-    if fps > 50:
-        probs.report("high fps")
+        if fps > 50:
+            probs.report("high fps")
 
 stats.save("stats.pickle")
 
