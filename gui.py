@@ -203,6 +203,9 @@ def generate_virus(spikes, spike_length, radius, global_coords):
     return points
 
 def draw_cell(cell):
+    font_size = 16
+    virus_sizes = {100:1, 106:2, 113:3, 119:4, 125:5, 131:6, 136:7}
+
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     try:
         mov_ang = cell.movement_angle
@@ -229,6 +232,9 @@ def draw_cell(cell):
             
             gfxdraw.filled_polygon(screen, polygon2, color)
             gfxdraw.aapolygon(screen, polygon2, color)
+            
+            draw_text((cx, cy), "%s / 7" % virus_sizes.get(cell.size, "?"), (64,0,0), font_size*2, False, True)
+            draw_text((cx, cy + radius + 10), str(cell.cid), (0,0,0), font_size, False, True)
     else:
         color=(int(cell.color[0]*255), int(cell.color[1]*255), int(cell.color[2]*255))
 
@@ -241,8 +247,6 @@ def draw_cell(cell):
             
             gfxdraw.aacircle(screen, cx, cy, int(radius/2), (255,255,255))
             gfxdraw.circle(screen, cx, cy, int(radius/2), (255,255,255))
-            
-            font_size = 16
             
             draw_text((cx, cy + radius + 10), cell.name, (0, 0, 0), font_size, False, True)
             draw_text((cx, cy + radius + 10 + font_size), str(cell.cid), (0,0,0), font_size, False, True)
