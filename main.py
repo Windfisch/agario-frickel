@@ -116,47 +116,50 @@ autorespawn_counter = 60
 
 clock = Clock()
 
-# main loop
-while gui.running:
-    c.on_message()
-    if clock.tic() > 1./20:
-        print("NETWORK LAG")
-        probs.report("network lag")
-    
-    gui.draw_frame()
-    if clock.tic() > 1./40:
-        print("GUI SLOW")
-        probs.report("gui lag")
-    
-    if len(list(c.player.own_cells)) > 0:
-        target = strategy.process_frame()
+try:
+    # main loop
+    while gui.running:
+        c.on_message()
+        if clock.tic() > 1./20:
+            print("NETWORK LAG")
+            probs.report("network lag")
+        
+        gui.draw_frame()
+        if clock.tic() > 1./40:
+            print("GUI SLOW")
+            probs.report("gui lag")
+        
+        if len(list(c.player.own_cells)) > 0:
+            target = strategy.process_frame()
 
-        if gui.bot_input:
-            c.send_target(target[0], target[1])
+            if gui.bot_input:
+                c.send_target(target[0], target[1])
 
-        stats.process_frame()
+            stats.process_frame()
 
-    if clock.tic() > 1./25.:
-        print("STRATEGY LAG")
-        probs.report("strategy lag")
+        if clock.tic() > 1./25.:
+            print("STRATEGY LAG")
+            probs.report("strategy lag")
 
-    gui.draw_debug()
-    gui.update()
+        gui.draw_debug()
+        gui.update()
 
-    if not c.player.is_alive:
-        if autorespawn_counter == 0:
-            c.send_respawn()
-            autorespawn_counter = 60
-        else:
-            autorespawn_counter-=1
+        if not c.player.is_alive:
+            if autorespawn_counter == 0:
+                c.send_respawn()
+                autorespawn_counter = 60
+            else:
+                autorespawn_counter-=1
 
-    fps = clock.getfps()
-    if clock.newfps:
-        print("FPS: %3d" % fps)
-        if fps < 24:
-            probs.report("low fps")
-        if fps > 50:
-            probs.report("high fps")
+        fps = clock.getfps()
+        if clock.newfps:
+            print("FPS: %3d" % fps)
+            if fps < 24:
+                probs.report("low fps")
+            if fps > 50:
+                probs.report("high fps")
+except ProblemException:
+    print("Exiting due to a problem such as low/high fps, network lags etc")
 
 stats.save("stats.pickle")
 
