@@ -7,11 +7,20 @@ import sys
 import math
 import time
 import random
-import gui
+import nogui as gui # might be overridden later.
 import stats
 from subscriber import EnhancingSubscriber
 from interval_utils import *
 from strategy import *
+
+if "--nogui" in sys.argv:
+    sys.argv.remove("--nogui")
+else:
+    try:
+        import gui
+    except:
+        print("ERROR: could not import gui... running without gui.")
+
 
 # global vars
 sub = EnhancingSubscriber()
@@ -53,7 +62,7 @@ c.player.nick=nick
 gui.set_client(c)
 
 # initialize strategy
-strategy = Strategy(c)
+strategy = Strategy(c, gui)
 
 autorespawn_counter = 60
 

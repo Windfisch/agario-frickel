@@ -1,20 +1,24 @@
 import math
 from interval_utils import *
-import gui
 import random
+import nogui
 
 friendly_players=["Windfisch","windfisch","Cyanide","cyanide"] +\
     ["Midna","Nayru","Farore","Din","Ezelo","Navi","Zelda","Tetra","Link","Ciela","Linebeck","Salia","Epona","Shiek"] +\
     ["Vaati","Ganon","Ganondorf","Ghirahim","Agahnim"]
 
 class Strategy:
-    def __init__(self, c):
+    def __init__(self, c, gui=None):
         self.target = (0,0)
         self.has_target = False
         self.target_cell = None
         self.color = (0,0,0)
         self.c = c
         self.do_approach_friends = True
+        if gui != None:
+            self.gui = gui
+        else:
+            self.gui = nogui
     
     def get_my_smallest(self):
         return sorted(self.c.player.own_cells, key = lambda x: x.mass)[0]
@@ -133,14 +137,14 @@ class Strategy:
                 print("friend too small")
                 friend_to_feed = None
             if friend_to_feed:
-                gui.hilight_cell(friend_to_feed, (255,255,255),(255,127,127),30)
+                self.gui.hilight_cell(friend_to_feed, (255,255,255),(255,127,127),30)
 
                 self.target_cell = friend_to_feed
                 self.has_target = True
         
         if self.do_approach_friends:
             for c in self.c.player.own_cells:
-                gui.hilight_cell(c, (255,255,255), (255,127,127), 20)
+                self.gui.hilight_cell(c, (255,255,255), (255,127,127), 20)
         
         # can this cell feed that cell?
         # "False" means "No, definitely not"
@@ -170,7 +174,7 @@ class Strategy:
 
             good_intervals = []
             for feedable in possibly_feedable_cells:
-                gui.hilight_cell(feedable, (255,192,127), (127,127,255))
+                self.gui.hilight_cell(feedable, (255,192,127), (127,127,255))
                 if feedable not in friendly_cells:
                     break
 
@@ -181,7 +185,7 @@ class Strategy:
             success_rate += area / (2*10*math.pi/180) / len(list(self.c.player.own_cells))
 
 
-        gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.98, color=(0,0,127))
+        self.gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.98, color=(0,0,127))
         if success_rate >= 0.98:
             self.c.send_shoot()
                 
@@ -237,7 +241,7 @@ class Strategy:
             
             # a bit of debugging information
             for i in forbidden_intervals:
-                gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
+                self.gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
 
         # if however there's no enemy to avoid, try to feed a friend. or chase food or jizz randomly around
         else:
@@ -270,6 +274,6 @@ class Strategy:
         
 
         # more debugging
-        gui.draw_line(self.c.player.center, self.target, self.color)
+        self.gui.draw_line(self.c.player.center, self.target, self.color)
         
         return self.target
