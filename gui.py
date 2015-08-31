@@ -319,14 +319,23 @@ def draw_markers():
 def draw_debug():
     for cell in c.world.cells.values():
         parent = None
+        shoot_vec = None
+        settled = None
         try:
             parent = cell.parent
+            shoot_vec = cell.shoot_vec
+            settled = cell.calmed_down
         except AttributeError:
             pass
 
         if parent != None:
             draw_line(cell.pos, parent.pos,(255,0,0))
             draw_circle(parent.pos,3,(255,0,0),True)
+
+
+        if shoot_vec != None and settled != True:
+            shoot_vec = 400 * shoot_vec / shoot_vec.len()
+            draw_line(cell.pos, cell.pos+shoot_vec, (0,255,255))
 
 
 def draw_frame():
