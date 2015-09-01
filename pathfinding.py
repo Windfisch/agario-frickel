@@ -1,25 +1,78 @@
 import math
+from agarnet.agarnet.vec import Vec
+
+"""
+pathfinding works by performing an A* search on a graph, built as follows:
+
+there is a equally spaced rectangular grid, where each node is connected
+to its 8 neighbours, with the appropriate euclidean distance.
+additionally, for each food or ejected mass blob, a node is created. they're
+additionally, for each food or ejected mass blob, a node is created. they're
+connected by straight lines with each other, if no enemy cell is in between.
+those "wormhole connections" have a cost of less than the euclidean distance.
+"""
+
+
+"""class Graph:
+    def __init__(self, center, width, height, spacing):
+        self.center = center
+        self.spacing = spacing
+        self.width = width
+        self.height = height
+
+
+    def nearest_node(self, pt):
+        rel = pt - self.center
+        rel.x = round(rel.x / spacing)
+        rel.y = round(rel.x / spacing)
+
+        nearest_blob = min(blobs, key = lambda blob : (blob.pos - pt).len())
+        dist_to_blob = (nearest_blob.pos - pt).len()
+        dist_to_grid = (spacing*rel + self.center - pt).len()
+
+        if dist_to_grid < dist_to_blob:
+            return self.get_gridnode(rel.x, rel.y)
+        else:
+            return self.get_blobnode(nearest_blob)
+"""
+
+class Graph:
+    def __init__(self, grid, blobs):
+        self.grid = grid
+        self.blobs = blobs
+
+    
+
 
 
 # A* code taken and adapted from https://gist.github.com/jamiees2/5531924
 
 class Node:
-    def __init__(self,value,point,point_in_grid):
+    def __init__(self,value,point,point_in_grid, is_in_wormhole_plane, graph, cell):
         self.value = value
         self.point = point
         self.point_in_grid = point_in_grid
         self.parent = None
         self.H = 0
         self.G = 0
+        self.graph = graph
+        self.is_in_wormhole_plane = is_in_wormhole_plane
+        self.find_near_wormholes(50)
+
+    def find_near_wormholes(self, radius):
+        self.near_wormholes = list(filter(lambda blob : (self.point - blob.point).len() < radius, self.graph.blobs))
 
     def move_cost(self,other):
-        # assert other in siblings(self,grid). otherwise this makes no sense
-        return distance(self, other) + (self.value + other.value)/2
+        if not (self.is_in_wormhole_plane and other.is_in_wormhole_plane):
+            # assert other in siblings(self,grid). otherwise this makes no sense
+            return 2*(distance(self, other) + (self.value + other.value)/2)
+        else:
+            return distance(self, other)
 
-def siblings(point,grid):
-    x,y = point.point_in_grid
-    links = [grid[d[0]][d[1]] for d in [(x-1, y),(x-1,y-1),(x,y - 1),(x+1,y-1),(x+1,y),(x+1,y+1),(x,y + 1),(x-1,y+1)]]
-    return [link for link in links if link.value != None]
+    def siblings(self):
+        x,y = self.point_in_grid
+        links = [self.graph.grid[d[0]][d[1]] for d in [(x-1, y),(x-1,y-1),(x,y - 1),(x+1,y-1),(x+1,y),(x+1,y+1),(x,y + 1),(x-1,y+1)]]
+        return [link for link in links if link.value != None] + self.near_wormholes
 
 def distance(point,point2):
     return math.sqrt((point.point[0] - point2.point[0])**2 + (point.point[1]-point2.point[1])**2)
@@ -48,7 +101,7 @@ def aStar(start, goal, grid):
         openset.remove(current)
         closedset.add(current)
         
-        for node in siblings(current,grid):
+        for node in current.siblings():
             if node in closedset:
                 continue
             
@@ -79,7 +132,13 @@ class PathfindingTesterStrategy:
         self.gui = gui
 
     def build_grid(self):
-        grid = [[0 for x in range(int(2*grid_radius//grid_density+1))] for x in range(int(2*grid_radius//grid_density+1))]
+        graph = Graph(None, [])
+        
+        graph.blobs = [ Node(0, c.pos, Vec( int((c.pos.x - self.c.player.center.x + grid_radius) // grid_density), int((c.pos.y - self.c.player.center.y + grid_radius) // grid_density) ), True, graph, c) for c in self.c.world.cells.values() if c.is_food ]
+
+    
+
+        graph.grid = [[0 for x in range(int(2*grid_radius//grid_density+1))] for x in range(int(2*grid_radius//grid_density+1))]
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
 
@@ -92,21 +151,24 @@ class PathfindingTesterStrategy:
                     relpos = (cell.pos.x - (x+self.c.player.center.x), cell.pos.y - (y+self.c.player.center.y))
                     dist_sq = relpos[0]**2 + relpos[1]**2
                     if dist_sq < cell.size**2 *3:
-                        grid[gridx][gridy] += 100000000
+                        graph.grid[gridx][gridy] += 100000000
                 
         for x in range(-grid_radius,grid_radius+1,grid_density):
             gridx = (x+grid_radius) // grid_density
             for y in range(-grid_radius,grid_radius+1,grid_density):
                 gridy = (y+grid_radius) // grid_density
                 
-                if (gridx in [0,len(grid)-1] or gridy in [0, len(grid[gridx])-1]):
+                if (gridx in [0,len(graph.grid)-1] or gridy in [0, len(graph.grid[gridx])-1]):
                     val = None
                 else:
-                    val = grid[gridx][gridy]
+                    val = graph.grid[gridx][gridy]
 
-                grid[gridx][gridy] = Node(val, (self.c.player.center[0]+x,self.c.player.center[1]+y), (gridx, gridy))
+                graph.grid[gridx][gridy] = Node(val, self.c.player.center+Vec(x,y), Vec(gridx, gridy), False, graph, None)
 
-        return grid
+        for blob in graph.blobs:
+            blob.find_near_wormholes(200)
+        
+        return graph.grid
 
     def plan_path(self):
         goalx = int((self.gui.marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
