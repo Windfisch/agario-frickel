@@ -1,0 +1,54 @@
+Created 2015-09-01, with data between 0 and 2 weeks old.
+
+Units used:
+	distances, sizes are measured in raw agar.io coordinates.
+	times are measured in frames. The game ran at 27-28 FPS at the time
+		where this document was created
+	speeds are measured in distance / number of frames
+
+
+
+cellspeed = 86.05 / cellsize**0.45
+
+zoom level is 369.399 * sum(own_cells.size) ** 0.431776
+
+ejecting mass:
+	prerequisite: size >= 60, i.e. mass >= 35
+	you will lose 16 mass, but only gain 12 mass if you eat the blob
+	one can eat ejected mass if mass >= 18 i.e. size >= 43
+
+	75% of the ejects had a deviation smaller than 0.39 rad = 22.16 deg
+	from the original moving direction of the shooting cell
+
+	they fly 44-45px, starting from shooting cell's border.
+
+splitting:
+	75% of the splits had a deviation smaller than 0.02 rad = 1.19 deg
+	from the original moving direction of the parent
+
+	flight distance: unknown, somewhere between 100 - 650, max = 1205
+
+	re-union will usually become possible somewhere after 745 - 790 frames
+		this means that your cells are possible to glide into each
+		other. depending on your movement pattern they will actually
+		merge sooner or later.
+
+feeding viruses:
+	75% of the splits had a deviation smaller than 0.00 rad = 0.11 deg
+	from the ejected mass movement vector.
+
+	maximum distance is 580 from the midpoint of the parent virus.
+	not sure about the minimum (too few data), but probably also 580?
+
+	Viruses can have the following sizes:
+		100, 106, 113, 119, 125, 131, 136.
+		Sometimes 141 is also observed, but those viruses will split
+		almost instantly (bug in the server software?)
+	i.e., feed a virus with size 100 6 times to maximum size, and one more
+	time to make it duplicate.
+
+eating:
+	a cell can eat us, if their size/mass(??) is at least 1.25* our size/mass
+	a cell eats another, if the smaller one's midpoint is within the
+	larger one's circle (with radius = size)
+

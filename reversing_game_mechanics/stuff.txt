@@ -1,0 +1,117 @@
+as of 2015-08-30
+
+CELL SIZE VS SPEED
+
+	size**0.45 * speed = 86.05616001328154
+
+
+
+
+SIZE VS VIEWPORT
+
+	with 1 cells, depending on sum(size)
+	median ratio = 1.7025611175785798
+	diag / size**0.33 = 608.971483054539
+
+	with 2 cells, depending on sum(size)
+	median ratio = 1.6963503649635037
+	diag / size**0.33 = 585.5509541758322
+
+	with 3 cells, depending on sum(size)
+	median ratio = 1.6898326898326899
+	diag / size**0.58 = 170.29929514108093
+
+	with 4 cells, depending on sum(size)
+	median ratio = 1.650784427658338
+	diag / size**0.0 = 3158.567553889486
+
+	with 1 cells, depending on sum(mass)
+	median ratio = 1.7025611175785798
+	diag / size**0.17 = 1270.6199859482824
+
+	with 2 cells, depending on sum(mass)
+	median ratio = 1.6972934472934473
+	diag / size**0.16 = 1407.4522241811242
+
+	with 3 cells, depending on sum(mass)
+	median ratio = 1.6975546975546976
+	diag / size**0.28 = 910.623966202271
+
+	with 4 cells, depending on sum(mass)
+	median ratio = 1.6625734116390818
+	diag / size**0.0 = 3141.1700855829763
+
+
+
+
+EJECT/SPLIT DIRECTIONS
+
+	split cell eject/split direction deviations: mean = 0.0009390500296252917, stddev=0.31212271930689983, ndata=621
+		75% of the splits had a deviation smaller than 0.02 rad = 1.19 deg
+
+	ejected mass eject/split direction deviations: mean = -0.021378484138331356, stddev=0.730695490707546, ndata=1585
+		75% of the splits had a deviation smaller than 0.39 rad = 22.16 deg
+
+	virus eject/split direction deviations: mean = -0.16497762078310707, stddev=0.07294211158929148, ndata=5
+		75% of the splits had a deviation smaller than 0.25 rad = 14.41 deg
+		(wrt "emitted mass begin -- parent virus")
+
+	virus2 eject/split direction deviations: mean = -0.001211356391619578, stddev=0.0038334565337591105, ndata=5
+		75% of the splits had a deviation smaller than 0.00 rad = 0.11 deg
+		(wrt "emitted mass flight direction")
+
+	virus3 eject/split direction deviations: mean = -0.13739240722341658, stddev=0.056773374975376475, ndata=5
+		75% of the splits had a deviation smaller than 0.21 rad = 11.82 deg
+		(wrt "emitter of the mass -- parent virus")
+
+
+
+
+EJECT/SPLIT DISTANCES
+
+	split cell eject/split distances: mean  = 378.6264099585539, stddev  =214.15995855502896, ndata=1226
+	split cell                        meann = 23.37846655791191, stddevn =17.23260859398865
+		75% of the distances lie in the interval 370.30 plusminus 218.60
+		80% of the distances lie in the interval 370.30 plusminus 262.32
+		max = 1205.46
+		75% of the flight lengths lie in the interval 20.00 plusminus 9.00
+		78% of the flight lengths lie in the interval 20.00 plusminus 10.80
+
+	ejected mass eject/split distances: mean  = 473.3307839719213, stddev  =159.4625848157587, ndata=1121
+	ejected mass                        meann = 42.015165031222125, stddevn =8.5656796143937
+		75% of the distances lie in the interval 534.64 plusminus 2.10
+		77% of the distances lie in the interval 534.64 plusminus 2.52
+		max = 637.28
+		75% of the flight lengths lie in the interval 44.00 plusminus 1.00
+		79% of the flight lengths lie in the interval 44.00 plusminus 1.20
+
+	virus eject/split distances: mean  = 396.47928995805, stddev  =219.79929069475193, ndata=9
+	virus                        meann = 42.666666666666664, stddevn =6.879922480183431
+		75% of the distances lie in the interval 510.53 plusminus 363.80
+		88% of the distances lie in the interval 510.53 plusminus 436.56
+		max = 580.08 (ndata = 13)
+		75% of the flight lengths lie in the interval 45.00 plusminus 10.00
+		77% of the flight lengths lie in the interval 45.00 plusminus 12.00
+
+
+
+
+VIRUS SIZES
+
+	I've seen the following 7 virus sizes:
+		 100:  386018 times
+		 106:  124015 times
+		 113:   72084 times
+		 119:   41825 times
+		 125:   24954 times
+		 131:  373398 times
+		 136:   11550 times
+
+
+
+
+REMERGES
+
+	75% of the remerge durations lie at 32.00 plusminus 30.00 frames
+	75% of the remerges were started after 767.00 plusminus 20.00 frames
+

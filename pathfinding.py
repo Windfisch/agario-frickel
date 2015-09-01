@@ -1,5 +1,3 @@
-from gui import marker, marker_updated
-import gui
 import math
 
 
@@ -75,9 +73,10 @@ grid_radius=int(1100/30)*30
 grid_density=30
 
 class PathfindingTesterStrategy:
-    def __init__(self, c):
+    def __init__(self, c, gui):
         self.c = c
         self.path = None
+        self.gui = gui
 
     def build_grid(self):
         grid = [[0 for x in range(int(2*grid_radius//grid_density+1))] for x in range(int(2*grid_radius//grid_density+1))]
@@ -110,8 +109,8 @@ class PathfindingTesterStrategy:
         return grid
 
     def plan_path(self):
-        goalx = int((marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
-        goaly = int((marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
+        goalx = int((self.gui.marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
+        goaly = int((self.gui.marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
         
         grid = self.build_grid()
 
@@ -130,8 +129,8 @@ class PathfindingTesterStrategy:
         return True
 
     def process_frame(self):
-        if marker_updated[0]:
-            marker_updated[0]=False
+        if self.gui.marker_updated[0]:
+            self.gui.marker_updated[0]=False
             
             self.path = self.plan_path()
             for node in self.path:
@@ -140,7 +139,7 @@ class PathfindingTesterStrategy:
 
 
         for (node1,node2) in zip(self.path,self.path[1:]):
-            gui.draw_line(node1.point, node2.point, (0,0,0))
+            self.gui.draw_line(node1.point, node2.point, (0,0,0))
 
         if self.path:
             relx, rely = self.path[0].point[0]-self.c.player.center.x, self.path[0].point[1]-self.c.player.center.y
@@ -153,4 +152,4 @@ class PathfindingTesterStrategy:
 
         if self.path:
             return self.path[0].point
-        return marker[0]
+        return self.gui.marker[0]

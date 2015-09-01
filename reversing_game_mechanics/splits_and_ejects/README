@@ -1,0 +1,50 @@
+Data collected with revision 165dd41, four parallel instances, 30-45 minutes each, on
+2015-08-28. Analyzed with analyze.py
+
+split cell eject/split direction deviations: mean = -0.04179961392956227, stddev=0.4556678701725402, ndata=159
+	75% of the splits had a deviation smaller than 0.02 rad = 1.31 deg
+
+ejected mass eject/split direction deviations: mean = -0.0016847086620534303, stddev=0.872858965604425, ndata=352
+	75% of the splits had a deviation smaller than 0.46 rad = 26.47 deg
+
+
+split cell eject/split distances: mean = 388.2279635920042, stddev=222.71465106976927, ndata=314
+	75% of the values lie in the interval 381.25 plusminus 225.53
+
+ejected mass eject/split distances: mean = 442.90229450857305, stddev=189.2221703217239, ndata=252
+	75% of the values lie in the interval 535.71 plusminus 8.61
+
+distances are measured between "spawn point of cell" and "end point of movement".
+Spawnpoint is usually near "parentcell.midpoint + parentcell.size".
+
+
+
+Now if we measure distances between "midpoint of parent cell" and "end point of movement" by
+applying the following patch:
+
+diff --git a/stats.py b/stats.py
+index bb88c3e..1c0a196 100644
+--- a/stats.py
++++ b/stats.py
+@@ -338,7 +338,7 @@ class Stats:
+         #    print(str(n) + "\t" + str(x))
+ 
+     def analyze_distances(self, celltype):
+-        ds = [v[0] for v in self.data.eject_distlogs[celltype]]
++        ds = [v[1] for v in self.data.eject_distlogs[celltype]]
+ 
+         try:
+             mean, stddev = fit_gaussian(ds)
+
+we get this:
+
+split cell eject/split distances: mean = 560.4528176561469, stddev=276.25260008531626, ndata=314
+	75% of the values lie in the interval 556.62 plusminus 322.76
+
+ejected mass eject/split distances: mean = 767.2502438544719, stddev=168.80422060053823, ndata=252
+	75% of the values lie in the interval 732.30 plusminus 86.28
+
+
+As one can see, the "plusminus" values are much larger than above. So measuring between "spawnpoint" and
+"endpoint" is more appropriate.
+

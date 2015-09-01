@@ -1,15 +1,25 @@
 import math
 from interval_utils import *
-import gui
 import random
+import nogui
+import mechanics
+
+friendly_players=["Windfisch","windfisch","Cyanide","cyanide"] +\
+    ["Midna","Nayru","Farore","Din","Ezelo","Navi","Zelda","Tetra","Link","Ciela","Linebeck","Salia","Epona","Shiek"] +\
+    ["Vaati","Ganon","Ganondorf","Ghirahim","Agahnim"]
 
 class Strategy:
-    def __init__(self, c):
+    def __init__(self, c, gui=None):
         self.target = (0,0)
         self.has_target = False
         self.target_cell = None
         self.color = (0,0,0)
         self.c = c
+        self.do_approach_friends = True
+        if gui != None:
+            self.gui = gui
+        else:
+            self.gui = nogui
     
     def get_my_smallest(self):
         return sorted(self.c.player.own_cells, key = lambda x: x.mass)[0]
@@ -43,9 +53,12 @@ class Strategy:
     def nonsplitkiller(self, cell):
         return not cell.is_virus and not cell.is_food and 1.20*self.get_my_smallest().mass < cell.mass and cell.mass < 1.25*2*self.get_my_smallest().mass
     
-    def quality(self, cell):
+    def quality(self, cell, myspeed):
         dd_sq = max((cell.pos[0]-self.c.player.center[0])**2 + (cell.pos[1]-self.c.player.center[1])**2,0.001)
-        sigma = 500
+        sigma = 500 * max(cell.mass,1) # TODO FIXME don't try to eat running away cells
+        if mechanics.speed(cell) - myspeed >= 0:
+            sigma = sigma / 3 / math.exp((mechanics.speed(cell)-myspeed)/10)
+
         dist_score = -math.exp(-dd_sq/(2*sigma**2))
 
         rivals = filter(lambda r : self.rival(r,cell), self.c.world.cells.values())
@@ -105,21 +118,123 @@ class Strategy:
     def process_frame(self):
         runaway = False
         
-        my_smallest = min(map(lambda cell : cell.mass, self.c.player.own_cells))
-        my_largest = max(map(lambda cell : cell.mass, self.c.player.own_cells))
+        my_smallest = min(self.c.player.own_cells, key=lambda cell : cell.mass)
+        my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
+
+        friendly_cells = list(filter(lambda c : c.is_virus or c.name in friendly_players, self.c.world.cells.values()))
+
+        if friendly_cells:
+            dist_to_friend = min(map(lambda c : (self.c.player.center-c.pos).len() - max(my_largest.size, c.size), friendly_cells))
+        else:
+            dist_to_friend = float('inf')
+
+        if dist_to_friend < 20 or my_largest.mass < 36:
+            if self.do_approach_friends: print("not approaching friends")
+            self.do_approach_friends = False
+        elif dist_to_friend > 200 and my_largest.mass > 36 + 10*16:
+            if not self.do_approach_friends: print("approaching friends")
+            self.do_approach_friends = True
+
+        if friendly_cells and self.do_approach_friends:
+            friend_to_feed = max(friendly_cells, key=lambda c:c.mass)
+            if friend_to_feed.mass < 1.25 * my_largest.mass:
+                print("friend too small")
+                friend_to_feed = None
+            if friend_to_feed:
+                self.gui.hilight_cell(friend_to_feed, (255,255,255),(255,127,127),30)
+
+                self.target_cell = friend_to_feed
+                self.has_target = True
+        
+        if self.do_approach_friends:
+            for c in self.c.player.own_cells:
+                self.gui.hilight_cell(c, (255,255,255), (255,127,127), 20)
+        
+        # can this cell feed that cell?
+        # "False" means "No, definitely not"
+        # "True" means "Maybe"
+        def can_feed(this, that):
+            if that.is_food or that.is_ejected_mass or that.size < 43: # too small cells cannot eat the ejected mass
+                return False
+
+            relpos = this.pos-that.pos
+            dist = relpos.len()
+            if dist == 0 or dist >= 700 + this.size + that.size:
+                return False
+            
+            return check_cell_in_interval(this.pos, that, (this.movement_angle - 10*math.pi/180, this.movement_angle + 10*math.pi/180))
 
 
-        # enemy/virus avoidance
+        success_rate = 0
+        for my_cell in self.c.player.own_cells:
+            try:
+                my_cell.movement_angle
+            except AttributeError:
+                print("cannot calculate shoot angle, too few backlog")
+                continue
+            # check if ejecting mass would feed a friend
+            possibly_feedable_cells = list(filter(lambda c : can_feed(my_cell, c), self.c.world.cells.values()))
+            possibly_feedable_cells.sort(key = lambda c : (my_cell.pos - c.pos).len())
+
+            good_intervals = []
+            for feedable in possibly_feedable_cells:
+                self.gui.hilight_cell(feedable, (255,192,127), (127,127,255))
+                if feedable not in friendly_cells:
+                    break
+
+                good_intervals += canonicalize_angle_interval( interval_occupied_by_cell(my_cell.pos, feedable) )
+
+            good_intervals = merge_intervals(good_intervals)
+            area = interval_area( intersection(good_intervals, canonicalize_angle_interval((my_cell.movement_angle - mechanics.eject_delta*math.pi/180, my_cell.movement_angle + mechanics.eject_delta*math.pi/180))) )
+            success_rate += area / (2*mechanics.eject_delta*math.pi/180) / len(list(self.c.player.own_cells))
+
+
+        self.gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.80, color=(0,0,127))
+        if success_rate >= 0.80:
+            self.c.send_shoot()
+                
+                
+
+        # enemy/virus/friend-we-would-kill avoidance
         forbidden_intervals = []
         for cell in self.c.world.cells.values():
             relpos = ((cell.pos[0]-self.c.player.center[0]),(cell.pos[1]-self.c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest) or (cell.is_virus and dist < my_largest and cell.mass < my_largest):
-                angle = math.atan2(relpos[1],relpos[0])
-                corridor_halfwidth = math.asin(cell.size / dist)
-                forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
-                runaway = True
+            # find out the allowed minimum distance
+            allowed_dist = None
+            
+            if cell.is_virus:
+                if cell.mass < my_largest.mass:
+                    allowed_dist = cell.size+2
+                else:
+                    allowed_dist = "don't care"
+            elif cell in friendly_cells:
+                if 1.25 * my_largest.mass > cell.mass: # we're dangerous to our friends
+                    allowed_dist = my_largest.size + 40
+            elif (cell not in self.c.player.own_cells and not cell.is_virus and not cell.is_ejected_mass and not cell.is_food) and cell.mass + 20 > 1.25 * my_smallest.mass: # our enemy is, or will be dangerous to us
+                if (cell.mass + 20) / 2 < 1.25 * my_smallest.mass:
+                    # they can't splitkill us (soon)
+                    allowed_dist = cell.size + 75
+                elif cell.mass / 15. < self.c.player.total_mass:
+                    # they can and they will splitkill us
+                    allowed_dist = 650 + cell.size
+                else:
+                    # we're too small, not worth a splitkill. they have absolutely no
+                    # chance to chase us
+                    allowed_dist = cell.size + 10
+            else:
+                allowed_dist = "don't care"
+
+            if allowed_dist != "don't care" and dist < allowed_dist:
+                try:
+                    angle = math.atan2(relpos[1],relpos[0])
+                    corridor_halfwidth = math.asin(min(1, cell.size / dist))
+                    forbidden_intervals += canonicalize_angle_interval((angle-corridor_halfwidth, angle+corridor_halfwidth))
+                    runaway = True
+                except:
+                    print("TODO FIXME: need to handle enemy cell which is in our centerpoint!")
+                    print("dist=%.2f, allowed_dist=%.2f" % (dist, allowed_dist))
         
         # wall avoidance
         if self.c.player.center[0] < self.c.world.top_left[1]+(self.c.player.total_size*2):
@@ -138,8 +253,13 @@ class Strategy:
             forbidden_intervals = merge_intervals(forbidden_intervals)
 
             allowed_intervals = invert_angle_intervals(forbidden_intervals)
+            
+            try:
+                (a,b) = find_largest_angle_interval(allowed_intervals)
+            except:
+                print("TODO FIXME: need to handle no runaway direction being available!")
+                (a,b) = (0,0)
 
-            (a,b) = find_largest_angle_interval(allowed_intervals)
             runaway_angle = (a+b)/2
             runaway_x, runaway_y = (self.c.player.center[0]+int(100*math.cos(runaway_angle))), (self.c.player.center[1]+int(100*math.sin(runaway_angle)))
             
@@ -148,27 +268,25 @@ class Strategy:
             self.target_cell = None
             
             self.color = (255,0,0)
-            print ("Running away: " + str((runaway_x-self.c.player.center[0], runaway_y-self.c.player.center[1])))
             
             # a bit of debugging information
             for i in forbidden_intervals:
-                gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
+                self.gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
 
-        # if however there's no enemy to avoid, chase food or jizz randomly around
-        else:          
+        # if however there's no enemy to avoid, try to feed a friend. or chase food or jizz randomly around
+        else:
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
-                if self.target_cell not in self.c.world.cells.values() or not self.edible(self.target_cell):
+                if self.target_cell not in self.c.world.cells.values() or (not self.edible(self.target_cell) and not self.target_cell in friendly_cells):
                     self.target_cell = None
                     self.has_target = False
-                    print("target_cell does not exist any more")
             elif self.target == tuple(self.c.player.center):
                 self.has_target = False
                 print("Reached random destination")
             
             if not self.has_target:
                 food = list(filter(self.edible, self.c.world.cells.values()))
-                food = sorted(food, key = self.quality)
+                food = sorted(food, key = lambda c : self.quality(c, mechanics.speed(my_largest)))
                 
                 if len(food) > 0:
                     self.target = (food[0].pos[0], food[0].pos[1])
@@ -176,8 +294,6 @@ class Strategy:
                     
                     self.has_target = True
                     self.color = (0,0,255)
-                    print("weight: ", self.weight_cell(self.target_cell))
-                    print("Found food at: " + str(food[0].pos))
                 else:
                     rx = self.c.player.center[0] + random.randrange(-400, 401)
                     ry = self.c.player.center[1] + random.randrange(-400, 401)
@@ -188,6 +304,6 @@ class Strategy:
         
 
         # more debugging
-        gui.draw_line(self.c.player.center, self.target, self.color)
+        self.gui.draw_line(self.c.player.center, self.target, self.color)
         
         return self.target
