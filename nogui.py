@@ -1,6 +1,9 @@
 running = True
 bot_input = True
 
+marker = [(0,0),(0,0),(0,0)]
+marker_updated = [True, True, True]
+
 def draw_bar(rect, val, thresh=None, min=0, max=1, color=(0,0,0), barcolor=None, exceedcolor=(255,0,0), threshcolor=None):
     pass
 
