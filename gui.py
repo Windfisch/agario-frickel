@@ -209,8 +209,8 @@ def draw_cell(cell):
     cx,cy = world_to_win_pt(cell.pos,c.player.center)
     try:
         mov_ang = cell.movement_angle
-        p2 = cell.pos + Vec( math.cos(mov_ang + 26*math.pi/180), math.sin(mov_ang + 26*math.pi/180) ) * (cell.size+700)
-        p3 = cell.pos + Vec( math.cos(mov_ang - 26*math.pi/180), math.sin(mov_ang - 26*math.pi/180) ) * (cell.size+700)
+        p2 = cell.pos + Vec( math.cos(mov_ang + mechanics.eject_delta*math.pi/180), math.sin(mov_ang + mechanics.eject_delta*math.pi/180) ) * (cell.size+700)
+        p3 = cell.pos + Vec( math.cos(mov_ang - mechanics.eject_delta*math.pi/180), math.sin(mov_ang - mechanics.eject_delta*math.pi/180) ) * (cell.size+700)
 
         cx2,cy2 = world_to_win_pt(p2,c.player.center)
         cx3,cy3 = world_to_win_pt(p3,c.player.center)

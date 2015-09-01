@@ -2,6 +2,7 @@ import math
 from interval_utils import *
 import random
 import nogui
+import mechanics
 
 friendly_players=["Windfisch","windfisch","Cyanide","cyanide"] +\
     ["Midna","Nayru","Farore","Din","Ezelo","Navi","Zelda","Tetra","Link","Ciela","Linebeck","Salia","Epona","Shiek"] +\
@@ -181,12 +182,12 @@ class Strategy:
                 good_intervals += canonicalize_angle_interval( interval_occupied_by_cell(my_cell.pos, feedable) )
 
             good_intervals = merge_intervals(good_intervals)
-            area = interval_area( intersection(good_intervals, canonicalize_angle_interval((my_cell.movement_angle - 10*math.pi/180, my_cell.movement_angle + 10*math.pi/180))) )
-            success_rate += area / (2*10*math.pi/180) / len(list(self.c.player.own_cells))
+            area = interval_area( intersection(good_intervals, canonicalize_angle_interval((my_cell.movement_angle - mechanics.eject_delta*math.pi/180, my_cell.movement_angle + mechanics.eject_delta*math.pi/180))) )
+            success_rate += area / (2*mechanics.eject_delta*math.pi/180) / len(list(self.c.player.own_cells))
 
 
-        self.gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.98, color=(0,0,127))
-        if success_rate >= 0.98:
+        self.gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.80, color=(0,0,127))
+        if success_rate >= 0.80:
             self.c.send_shoot()
                 
                 
