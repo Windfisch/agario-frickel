@@ -53,9 +53,12 @@ class Strategy:
     def nonsplitkiller(self, cell):
         return not cell.is_virus and not cell.is_food and 1.20*self.get_my_smallest().mass < cell.mass and cell.mass < 1.25*2*self.get_my_smallest().mass
     
-    def quality(self, cell):
+    def quality(self, cell, myspeed):
         dd_sq = max((cell.pos[0]-self.c.player.center[0])**2 + (cell.pos[1]-self.c.player.center[1])**2,0.001)
-        sigma = 500
+        sigma = 500 * max(cell.mass,1) # TODO FIXME don't try to eat running away cells
+        if mechanics.speed(cell) - myspeed >= 0:
+            sigma = sigma / 3 / math.exp((mechanics.speed(cell)-myspeed)/10)
+
         dist_score = -math.exp(-dd_sq/(2*sigma**2))
 
         rivals = filter(lambda r : self.rival(r,cell), self.c.world.cells.values())
@@ -283,7 +286,7 @@ class Strategy:
             
             if not self.has_target:
                 food = list(filter(self.edible, self.c.world.cells.values()))
-                food = sorted(food, key = self.quality)
+                food = sorted(food, key = lambda c : self.quality(c, mechanics.speed(my_largest)))
                 
                 if len(food) > 0:
                     self.target = (food[0].pos[0], food[0].pos[1])
