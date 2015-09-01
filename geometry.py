@@ -25,3 +25,7 @@ def is_colinear(points, epsilon=1):
             return False
     return True
 
+def angle_diff(alpha, beta):
+    result = (alpha-beta) % (2*math.pi)
+    if result > math.pi: result -= 2*math.pi
+    return result

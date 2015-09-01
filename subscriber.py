@@ -2,6 +2,8 @@ from log import log
 from collections import deque
 import sys
 import mechanics
+import time
+import math
 
 class DummySubscriber:
     def on_connect_error(self,s):
@@ -114,6 +116,16 @@ class EnhancingSubscriber(DummySubscriber):
         if self.time % 100 == 0:
             self.cleanup_victims()
 
+
+
+        try:
+            angle = math.atan2(self.c.current_target[1] - self.c.player.center.y, self.c.current_target[0] - self.c.player.center.x)
+        except:
+            angle = 0
+
+        self.c.anglelog.append(angle)
+
+
         # create and purge poslog history, movement and movement_angle
         for cid in self.history:
             self.history[cid].stale = True
@@ -135,6 +147,7 @@ class EnhancingSubscriber(DummySubscriber):
 
             if not hasattr(cell, "spawntime"):
                 cell.spawntime = self.c.world.time
+                cell.spawnrealtime = time.time()
 
             try:
                 oldpos = cell.poslog[-3-1]
@@ -197,6 +210,9 @@ class EnhancingSubscriber(DummySubscriber):
                         cell.shoot_vec = None
                     cell.calmed_down = False
 
+                    if cell.parent != None and cell.parent in self.c.player.own_cells:
+                        # we have split. use this for lag calculation
+                        self.c.report_actual_event("split", cell.spawnrealtime)
             elif cell.is_virus:
                 try:
                     if cell.parent == None and cell.movement.len() > 0:
@@ -246,6 +262,11 @@ class EnhancingSubscriber(DummySubscriber):
                         except:
                             cell.shoot_vec = None
                         cell.calmed_down = False
+
+                        if cell.parent != None and cell.parent in self.c.player.own_cells:
+                            # we ejected mass. use this for lag calculation
+                            self.c.report_actual_event("shoot", cell.spawnrealtime)
+
                     except ValueError:
                         # if no possible parents are found, min will raise a ValueError. ignore that.
                         pass

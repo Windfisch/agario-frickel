@@ -1,4 +1,4 @@
-from agarnet.agarnet import client
+from fancyclient import FancyClient
 from agarnet.agarnet import utils
 import pygame
 from pygame import gfxdraw
@@ -72,7 +72,7 @@ else:
 
 # global vars
 sub = EnhancingSubscriber()
-c = client.Client(sub)
+c = FancyClient(sub)
 sub.set_client(c)
 stats = stats.Stats(c)
             

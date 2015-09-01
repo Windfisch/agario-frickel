@@ -186,7 +186,7 @@ class Strategy:
 
 
         self.gui.draw_bar(((100,40),(500,24)), success_rate, thresh=.98, color=(0,0,127))
-        if success_rate >= 0.98:
+        if success_rate >= 0.98 and self.c.movement_steadyness() < math.pi/4:
             self.c.send_shoot()
                 
                 
