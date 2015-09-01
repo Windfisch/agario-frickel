@@ -192,13 +192,38 @@ class Strategy:
                 
                 
 
-        # enemy/virus avoidance
+        # enemy/virus/friend-we-would-kill avoidance
         forbidden_intervals = []
         for cell in self.c.world.cells.values():
             relpos = ((cell.pos[0]-self.c.player.center[0]),(cell.pos[1]-self.c.player.center[1]))
             dist = math.sqrt(relpos[0]**2+relpos[1]**2)
 
-            if ( (not cell.is_virus and dist < ((500+2*cell.size) if cell.mass > 1.25*my_smallest.mass*2 else (300+cell.size)) and  cell.mass > 1.25 * my_smallest.mass) or (cell.is_virus and dist < my_largest.mass and cell.mass < my_largest.mass) ) and not (cell in friendly_cells) or (cell in friendly_cells) and dist < cell.size+10:
+            # find out the allowed minimum distance
+            allowed_dist = None
+            
+            if cell.is_virus:
+                if cell.mass < my_largest.mass:
+                    allowed_dist = cell.size+2
+                else:
+                    allowed_dist = "don't care"
+            elif cell in friendly_cells:
+                if 1.25 * my_largest.mass > cell.mass: # we're dangerous to our friends
+                    allowed_dist = my_largest.size + 40
+            elif (cell not in self.c.player.own_cells and not cell.is_virus and not cell.is_ejected_mass and not cell.is_food) and cell.mass + 20 > 1.25 * my_smallest.mass: # our enemy is, or will be dangerous to us
+                if (cell.mass + 20) / 2 < 1.25 * my_smallest.mass:
+                    # they can't splitkill us (soon)
+                    allowed_dist = cell.size + 75
+                elif cell.mass / 15. < self.c.player.total_mass:
+                    # they can and they will splitkill us
+                    allowed_dist = 650 + cell.size
+                else:
+                    # we're too small, not worth a splitkill. they have absolutely no
+                    # chance to chase us
+                    allowed_dist = cell.size + 10
+            else:
+                allowed_dist = "don't care"
+
+            if allowed_dist != "don't care" and dist < allowed_dist:
                 try:
                     angle = math.atan2(relpos[1],relpos[0])
                     corridor_halfwidth = math.asin(min(1, cell.size / dist))
@@ -206,6 +231,7 @@ class Strategy:
                     runaway = True
                 except:
                     print("TODO FIXME: need to handle enemy cell which is in our centerpoint!")
+                    print("dist=%.2f, allowed_dist=%.2f" % (dist, allowed_dist))
         
         # wall avoidance
         if self.c.player.center[0] < self.c.world.top_left[1]+(self.c.player.total_size*2):
