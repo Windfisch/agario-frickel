@@ -42,16 +42,37 @@ class Graph:
         self.blobs = blobs
 
     
+class Grid:
+    def __init__(self, origin, radius, density, default=None):
+        self.radius = radius
+        self.density = density
+        self.origin = origin
+        self.data = [[default for x in range(int(2*radius//density+1))] for x in range(int(2*radius//density+1))]
 
+    def getpos(self, x, y = None):
+        if y == None:
+            x,y=x[0],x[1]
+        return ( int(x-self.origin.x+self.radius)//self.density, int(y-self.origin.y+self.radius)//self.density )
+
+    def at(self, x, y = None):
+        xx,yy = self.getpos(x,y)
+        return self.data[xx][yy]
+
+    def set(self, val, x, y = None):
+        xx,yy = self.getpos(x,y)
+        self.data[xx][yy] = val
+
+    def is_border(self, x, y):
+        xx,yy = self.getpos(x,y)
+        return (xx in [0,len(self.data)-1] or yy in [0, len(self.data[xx])-1])
 
 
 # A* code taken and adapted from https://gist.github.com/jamiees2/5531924
 
 class Node:
-    def __init__(self,value,point,point_in_grid, is_in_wormhole_plane, graph, cell):
+    def __init__(self,value,point, is_in_wormhole_plane, graph, cell):
         self.value = value
         self.point = point
-        self.point_in_grid = point_in_grid
         self.parent = None
         self.H = 0
         self.G = 0
@@ -60,7 +81,7 @@ class Node:
         self.find_near_wormholes(50)
 
     def find_near_wormholes(self, radius):
-        self.near_wormholes = list(filter(lambda blob : (self.point - blob.point).len() < radius, self.graph.blobs))
+        self.near_wormholes = [] # list(filter(lambda blob : (self.point - blob.point).len() < radius, self.graph.blobs))
 
     def move_cost(self,other):
         dist = distance(self, other)
@@ -72,15 +93,14 @@ class Node:
             return max(dist, 5*dist - 500)
 
     def siblings(self):
-        x,y = self.point_in_grid
-        links = [self.graph.grid[d[0]][d[1]] for d in [(x-1, y),(x-1,y-1),(x,y - 1),(x+1,y-1),(x+1,y),(x+1,y+1),(x,y + 1),(x-1,y+1)]]
+        x,y = self.graph.grid.getpos(self.point)
+        links = [self.graph.grid.data[d[0]][d[1]] for d in [(x-1, y),(x-1,y-1),(x,y - 1),(x+1,y-1),(x+1,y),(x+1,y+1),(x,y + 1),(x-1,y+1)]]
         return [link for link in links if link.value != None] + self.near_wormholes
 
 def distance(point,point2):
     return math.sqrt((point.point[0] - point2.point[0])**2 + (point.point[1]-point2.point[1])**2)
 
-def aStar(start, goal, grid):
-    print("aStar("+str(start.point)+"="+str(start.point_in_grid)+",  "+str(goal.point)+"="+str(goal.point_in_grid)+")")
+def aStar(start, goal):
     openset = set()
     closedset = set()
     
@@ -133,52 +153,46 @@ class PathfindingTesterStrategy:
         self.path = None
         self.gui = gui
 
-    def build_grid(self):
+    def build_graph(self):
         graph = Graph(None, [])
         
-        graph.blobs = [ Node(0, c.pos, Vec( int((c.pos.x - self.c.player.center.x + grid_radius) // grid_density), int((c.pos.y - self.c.player.center.y + grid_radius) // grid_density) ), True, graph, c) for c in self.c.world.cells.values() if c.is_food ]
+        graph.blobs = [ Node(0, c.pos, True, graph, c) for c in self.c.world.cells.values() if c.is_food ]
 
     
 
-        graph.grid = [[0 for x in range(int(2*grid_radius//grid_density+1))] for x in range(int(2*grid_radius//grid_density+1))]
+        graph.grid = Grid(self.c.player.center, grid_radius, grid_density, 0)
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
+        
+        x_range = range( int(self.c.player.center.x-grid_radius),  int(self.c.player.center.x+grid_radius+1),  grid_density)
+        y_range = range( int(self.c.player.center.y-grid_radius),  int(self.c.player.center.y+grid_radius+1),  grid_density)
 
         for cell in interesting_cells:
-            for x in range(-grid_radius,grid_radius+1,grid_density):
-                gridx = (x+grid_radius) // grid_density
-                for y in range(-grid_radius,grid_radius+1,grid_density):
-                    gridy = (y+grid_radius) // grid_density
-
-                    relpos = (cell.pos.x - (x+self.c.player.center.x), cell.pos.y - (y+self.c.player.center.y))
+            for x in x_range:
+                for y in y_range:
+                    relpos = (cell.pos.x - x, cell.pos.y - y)
                     dist_sq = relpos[0]**2 + relpos[1]**2
                     if dist_sq < cell.size**2 *3:
-                        graph.grid[gridx][gridy] += 100000000
+                        graph.grid.set(100000000, x,y)
                 
-        for x in range(-grid_radius,grid_radius+1,grid_density):
-            gridx = (x+grid_radius) // grid_density
-            for y in range(-grid_radius,grid_radius+1,grid_density):
-                gridy = (y+grid_radius) // grid_density
-                
-                if (gridx in [0,len(graph.grid)-1] or gridy in [0, len(graph.grid[gridx])-1]):
+        for x in x_range:
+            for y in y_range:
+                if graph.grid.is_border(x,y):
                     val = None
                 else:
-                    val = graph.grid[gridx][gridy]
+                    val = graph.grid.at(x,y)
 
-                graph.grid[gridx][gridy] = Node(val, self.c.player.center+Vec(x,y), Vec(gridx, gridy), False, graph, None)
+                graph.grid.set(Node(val, Vec(x,y), False, graph, None), x,y)
 
         for blob in graph.blobs:
-            blob.find_near_wormholes(200)
+            blob.find_near_wormholes(50)
         
-        return graph.grid
+        return graph
 
     def plan_path(self):
-        goalx = int((self.gui.marker[0][0] - self.c.player.center[0] + grid_radius)/grid_density)
-        goaly = int((self.gui.marker[0][1] - self.c.player.center[1] + grid_radius)/grid_density)
-        
-        grid = self.build_grid()
+        graph = self.build_graph()
 
-        path = aStar(grid[int(grid_radius/grid_density)][int(grid_radius/grid_density)], grid[goalx][goaly], grid)
+        path = aStar(graph.grid.at(self.c.player.center), graph.grid.at(self.gui.marker[0]))
         return path
 
     def path_is_valid(self, path):
@@ -198,7 +212,7 @@ class PathfindingTesterStrategy:
             
             self.path = self.plan_path()
             for node in self.path:
-                print (node.point_in_grid)
+                print (node.point)
             print("="*10)
 
 
