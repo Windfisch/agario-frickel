@@ -47,16 +47,39 @@ class Grid:
         self.radius = radius
         self.density = density
         self.origin = origin
-        self.data = [[default for x in range(int(2*radius//density+1))] for x in range(int(2*radius//density+1))]
+        if not hasattr(default, '__call__'):
+            self.data = [[default for x in range(int(2*radius//density+1))] for x in range(int(2*radius//density+1))]
+        else:
+            self.data = [[default() for x in range(int(2*radius//density+1))] for x in range(int(2*radius//density+1))]
 
     def getpos(self, x, y = None):
         if y == None:
             x,y=x[0],x[1]
         return ( int(x-self.origin.x+self.radius)//self.density, int(y-self.origin.y+self.radius)//self.density )
 
+    def distance(self, x, y = None):
+        if y == None:
+            x,y=x[0],x[1]
+
+        xx,yy = self.getpos(x,y)
+
+        return (Vec(x,y) - Vec(xx*self.density+self.origin.x-self.radius, yy*self.density+self.origin.y-self.radius)).len()
+        
+
     def at(self, x, y = None):
         xx,yy = self.getpos(x,y)
         return self.data[xx][yy]
+
+    def points_near(self, radius, x, y = None):
+        r = int(radius / self.density)
+        xx,yy = self.getpos(x,y)
+
+        result = []
+        for xxx in range(xx-r, xx+r+1):
+            for yyy in range(yy-r, yy+r+1):
+                if self.contains_raw(xxx,yyy):
+                    result.append(self.data[xxx][yyy])
+        return result
 
     def set(self, val, x, y = None):
         xx,yy = self.getpos(x,y)
@@ -66,11 +89,18 @@ class Grid:
         xx,yy = self.getpos(x,y)
         return (xx in [0,len(self.data)-1] or yy in [0, len(self.data[xx])-1])
 
+    def contains(self, x, y):
+        xx,yy = self.getpos(x,y)
+        return contains_raw(xx,yy)
+
+    def contains_raw(self, xx, yy):
+        return (0 <= xx and xx < len(self.data)) and (0 <= yy and yy < len(self.data[yy]))
+
 
 # A* code taken and adapted from https://gist.github.com/jamiees2/5531924
 
 class Node:
-    def __init__(self,value,point, is_in_wormhole_plane, graph, cell):
+    def __init__(self,value,point, is_in_wormhole_plane, graph, cell, near_wormholes = []):
         self.value = value
         self.point = point
         self.parent = None
@@ -78,7 +108,7 @@ class Node:
         self.G = 0
         self.graph = graph
         self.is_in_wormhole_plane = is_in_wormhole_plane
-        self.find_near_wormholes(50)
+        self.near_wormholes = near_wormholes
 
     def find_near_wormholes(self, radius):
         self.near_wormholes = list(filter(lambda blob : (self.point - blob.point).len() < radius, self.graph.blobs))
@@ -161,6 +191,17 @@ class PathfindingTesterStrategy:
     
 
         graph.grid = Grid(self.c.player.center, grid_radius, grid_density, 0)
+        
+        
+        tempgrid = Grid(self.c.player.center, grid_radius, grid_density, lambda : [])
+        for blob in graph.blobs:
+            for l in tempgrid.points_near(50, blob.point):
+                l.append(blob)
+                #dist = tempgrid.distance(cell.pos)
+
+                
+                
+
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
         
@@ -182,7 +223,7 @@ class PathfindingTesterStrategy:
                 else:
                     val = graph.grid.at(x,y)
 
-                graph.grid.set(Node(val, Vec(x,y), False, graph, None), x,y)
+                graph.grid.set(Node(val, Vec(x,y), False, graph, None, tempgrid.at(x,y)), x,y)
 
         for blob in graph.blobs:
             blob.find_near_wormholes(50)
