@@ -205,19 +205,19 @@ class PathfindingTesterStrategy:
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
         
-        x_range = range( int(self.c.player.center.x-grid_radius),  int(self.c.player.center.x+grid_radius+1),  grid_density)
-        y_range = range( int(self.c.player.center.y-grid_radius),  int(self.c.player.center.y+grid_radius+1),  grid_density)
+        xmin,xmax = int(self.c.player.center.x-grid_radius),  int(self.c.player.center.x+grid_radius+1)
+        ymin,ymax = int(self.c.player.center.y-grid_radius),  int(self.c.player.center.y+grid_radius+1)
 
         for cell in interesting_cells:
-            for x in x_range:
-                for y in y_range:
+            for x in range( max(xmin, cell.pos.x - 3*cell.size - grid_density), min(xmax, cell.pos.x + 3*cell.size + grid_density), grid_density ):
+                for y in range( max(ymin, cell.pos.y - 3*cell.size - grid_density), min(ymax, cell.pos.y + 3*cell.size + grid_density), grid_density ):
                     relpos = (cell.pos.x - x, cell.pos.y - y)
-                    dist_sq = relpos[0]**2 + relpos[1]**2
-                    if dist_sq < cell.size**2 *3:
+                    dist = math.sqrt(relpos[0]**2 + relpos[1]**2)
+                    if dist < cell.size + 100:
                         graph.grid.set(100000000, x,y)
                 
-        for x in x_range:
-            for y in y_range:
+        for x in range(xmin, xmax+1, grid_density):
+            for y in range(ymin, ymax+1, grid_density):
                 if graph.grid.is_border(x,y):
                     val = None
                 else:
