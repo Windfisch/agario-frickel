@@ -195,7 +195,7 @@ class PathfindingTesterStrategy:
         
         tempgrid = Grid(self.c.player.center, grid_radius, grid_density, lambda : [])
         for blob in graph.blobs:
-            for l in tempgrid.points_near(50, blob.point):
+            for l in tempgrid.points_near(100, blob.point):
                 l.append(blob)
                 #dist = tempgrid.distance(cell.pos)
 
@@ -226,7 +226,7 @@ class PathfindingTesterStrategy:
                 graph.grid.set(Node(val, Vec(x,y), False, graph, None, tempgrid.at(x,y)), x,y)
 
         for blob in graph.blobs:
-            blob.find_near_wormholes(50)
+            blob.find_near_wormholes(100)
         
         return graph
 
