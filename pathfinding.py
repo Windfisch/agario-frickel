@@ -279,6 +279,14 @@ class PathfindingTesterStrategy:
         return True
 
     def process_frame(self):
+        for x in range(0,grid_radius, grid_density):
+            color=(192,192,192)
+            self.gui.draw_line((-8000,self.c.player.center.y + x), (8000, self.c.player.center.y + x), color)
+            self.gui.draw_line((-8000,self.c.player.center.y - x), (8000, self.c.player.center.y - x), color)
+            self.gui.draw_line((self.c.player.center.x - x,-8000), (self.c.player.center.x - x, 8000), color)
+            self.gui.draw_line((self.c.player.center.x + x,-8000), (self.c.player.center.x + x, 8000), color)
+
+
         if self.gui.marker_updated[0]:
             self.gui.marker_updated[0]=False
             
