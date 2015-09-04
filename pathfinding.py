@@ -121,12 +121,22 @@ class Node:
         self.near_wormholes = list(filter(lambda blob : (self.point - blob.point).len() < radius, self.graph.blobs))
 
     def move_cost(self,other):
-        dist = distance(self, other)
+        # MUST NOT be called when other not in self.siblings()!
+
+
         if not (self.is_in_wormhole_plane or other.is_in_wormhole_plane):
             # assert other in siblings(self,grid). otherwise this makes no sense
             #return 5*(distance(self, other) + (self.value + other.value)/2)
+            xd, yd = abs(self.point.x-other.point.x), abs(self.point.y-other.point.y)
+            dist=0
+            if xd == 0 or yd == 0:  
+                dist = xd+yd
+            else:
+                dist = 1.41*xd
+
             return 5*dist + (self.value + other.value)/2
         else:
+            dist = distance(self, other)
             return max(dist, 5*dist - 500)
 
     def siblings(self):
