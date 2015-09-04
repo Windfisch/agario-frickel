@@ -111,6 +111,8 @@ class Node:
         self.graph = graph
         self.is_in_wormhole_plane = is_in_wormhole_plane
         self.near_wormholes = near_wormholes
+        self.is_open = False
+        self.is_closed = False
 
     def __lt__(self, other):
         return False
@@ -136,15 +138,13 @@ def distance(point,point2):
     return math.sqrt((point.point[0] - point2.point[0])**2 + (point.point[1]-point2.point[1])**2)
 
 def aStar(start, goal):
-    openset = set()
     openheap = []
-    closedset = set()
     
     current = start 
-    openset.add(current)
+    current.is_open = True
     openheap.append((0,current))
    
-    while openset:
+    while openheap:
         #Find the item in the open set with the lowest F = G + H score
         current = heapq.heappop(openheap)[1]
         
@@ -157,17 +157,14 @@ def aStar(start, goal):
             path.append(current)
             return path[::-1]
        
-        try:
-            openset.remove(current)
-        except KeyError:
-            pass
-        closedset.add(current)
+        current.is_open = False
+        current.is_closed = True
         
         for node in current.siblings():
-            if node in closedset:
+            if node.is_closed:
                 continue
             
-            if node in openset:
+            if node.is_open:
                 #Check if we beat the G score
                 new_g = current.G + current.move_cost(node)
                 if node.G > new_g:
@@ -184,7 +181,7 @@ def aStar(start, goal):
                 
                 node.parent = current
 
-                openset.add(node)
+                node.is_open=True
                 heapq.heappush(openheap, (node.F, node))
     
     raise ValueError('No Path Found')
