@@ -186,8 +186,8 @@ def aStar(start, goal):
     
     raise ValueError('No Path Found')
 
-grid_radius=int(1100/30)*30
 grid_density=30
+grid_radius=int(1100/grid_density)*grid_density
 
 class PathfindingTesterStrategy:
     def __init__(self, c, gui):
@@ -221,21 +221,30 @@ class PathfindingTesterStrategy:
         ymin,ymax = int(self.c.player.center.y-grid_radius),  int(self.c.player.center.y+grid_radius+1)
 
         for cell in interesting_cells:
-            for x in range( max(xmin, cell.pos.x - 3*cell.size - grid_density), min(xmax, cell.pos.x + 3*cell.size + grid_density), grid_density ):
-                for y in range( max(ymin, cell.pos.y - 3*cell.size - grid_density), min(ymax, cell.pos.y + 3*cell.size + grid_density), grid_density ):
+            x1,x2 = max(xmin, cell.pos.x - 3*cell.size - grid_density), min(xmax, cell.pos.x + 3*cell.size + grid_density)
+            y1,y2 = max(ymin, cell.pos.y - 3*cell.size - grid_density), min(ymax, cell.pos.y + 3*cell.size + grid_density)
+            xx1,yy1 = graph.grid.getpos(x1,y1)
+            xx2,yy2 = graph.grid.getpos(x2,y2)
+            for (x,xx) in zip( range(x1,x2, grid_density), range(xx1,xx2) ):
+                for (y,yy) in zip( range(y1,y2, grid_density), range(yy1,yy2) ):
                     relpos = (cell.pos.x - x, cell.pos.y - y)
                     dist = math.sqrt(relpos[0]**2 + relpos[1]**2)
                     if dist < cell.size + 100:
-                        graph.grid.set(100000000, x,y)
+                        graph.grid.data[xx][yy] = 100000000
                 
-        for x in range(xmin, xmax+1, grid_density):
-            for y in range(ymin, ymax+1, grid_density):
-                if graph.grid.is_border(x,y):
-                    val = None
-                else:
-                    val = graph.grid.at(x,y)
+        xx1,yy1 = graph.grid.getpos(xmin,ymin)
+        xx2,yy2 = graph.grid.getpos(xmax+1,ymax+1)
+        for xx in range(xx1,xx2):
+            graph.grid.data[xx][yy1+1] = None
+            graph.grid.data[xx][yy2-1] = None
+        for yy in range(yy1,yy2):
+            graph.grid.data[xx1+1][yy] = None
+            graph.grid.data[xx2-1][yy] = None
 
-                graph.grid.set(Node(val, Vec(x,y), False, graph, None, tempgrid.at(x,y)), x,y)
+        for x,xx in zip( range(xmin, xmax+1, grid_density), range(xx1,xx2) ):
+            for y,yy in zip( range(ymin, ymax+1, grid_density), range(yy1,yy2) ):
+                val = graph.grid.data[xx][yy]
+                graph.grid.data[xx][yy] = Node(val, Vec(x,y), False, graph, None, tempgrid.data[xx][yy])
 
         for blob in graph.blobs:
             blob.find_near_wormholes(100)
