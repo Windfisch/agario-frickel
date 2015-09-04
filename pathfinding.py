@@ -1,3 +1,4 @@
+import heapq
 import math
 from agarnet.agarnet.vec import Vec
 
@@ -106,9 +107,13 @@ class Node:
         self.parent = None
         self.H = 0
         self.G = 0
+        self.F = 0
         self.graph = graph
         self.is_in_wormhole_plane = is_in_wormhole_plane
         self.near_wormholes = near_wormholes
+
+    def __lt__(self, other):
+        return False
 
     def find_near_wormholes(self, radius):
         self.near_wormholes = list(filter(lambda blob : (self.point - blob.point).len() < radius, self.graph.blobs))
@@ -132,14 +137,16 @@ def distance(point,point2):
 
 def aStar(start, goal):
     openset = set()
+    openheap = []
     closedset = set()
     
     current = start 
     openset.add(current)
+    openheap.append((0,current))
    
     while openset:
-        #Find the item in the open set with the lowest G + H score
-        current = min(openset, key=lambda o:o.G + o.H)
+        #Find the item in the open set with the lowest F = G + H score
+        current = heapq.heappop(openheap)[1]
         
         #If it is the item we want, retrace the path and return it
         if current == goal:
@@ -149,8 +156,11 @@ def aStar(start, goal):
                 current = current.parent
             path.append(current)
             return path[::-1]
-        
-        openset.remove(current)
+       
+        try:
+            openset.remove(current)
+        except KeyError:
+            pass
         closedset.add(current)
         
         for node in current.siblings():
@@ -158,19 +168,24 @@ def aStar(start, goal):
                 continue
             
             if node in openset:
-                #Check if we beat the G score 
+                #Check if we beat the G score
                 new_g = current.G + current.move_cost(node)
                 if node.G > new_g:
                     #If so, update the node to have a new parent
                     node.G = new_g
+                    node.F = node.G + node.H
                     node.parent = current
+                    heapq.heappush(openheap, (node.F, node))
             else:
                 #If it isn't in the open set, calculate the G and H score for the node
                 node.G = current.G + current.move_cost(node)
                 node.H = distance(node, goal)
+                node.F = node.G + node.H
                 
                 node.parent = current
+
                 openset.add(node)
+                heapq.heappush(openheap, (node.F, node))
     
     raise ValueError('No Path Found')
 
