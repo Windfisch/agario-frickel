@@ -105,7 +105,10 @@ class EnhancingSubscriber(DummySubscriber):
         if eater_id not in self.victims:
             self.victims[eater_id] = []
 
-        self.victims[eater_id] += [(self.c.world.cells[eaten_id], self.time)]
+        try:
+            self.victims[eater_id] += [(self.c.world.cells[eaten_id], self.time)]
+        except KeyError:
+            pass
 
     def on_world_update_post(self):
         self.c.world.time = self.time
