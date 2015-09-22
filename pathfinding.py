@@ -1,6 +1,9 @@
 import heapq
 import math
 from agarnet.agarnet.vec import Vec
+from mechanics import *
+
+inf = 999999
 
 """
 pathfinding works by performing an A* search on a graph, built as follows:
@@ -199,11 +202,45 @@ def aStar(start, goal):
 grid_density=30
 grid_radius=int(1100/grid_density)*grid_density
 
+
+
+
+
 class PathfindingTesterStrategy:
     def __init__(self, c, gui):
         self.c = c
         self.path = None
         self.gui = gui
+
+    def grid_circle(self, graph, pos, size, val):
+        xmin,xmax = int(self.c.player.center.x-grid_radius), int(self.c.player.center.x+grid_radius+1)
+        ymin,ymax = int(self.c.player.center.y-grid_radius), int(self.c.player.center.y+grid_radius+1)
+        x1,x2 = int(max(xmin, pos.x - size - grid_density)), int(min(xmax, pos.x + size + grid_density))
+        y1,y2 = int(max(ymin, pos.y - size - grid_density)), int(min(ymax, pos.y + size + grid_density))
+        xx1,yy1 = graph.grid.getpos(x1,y1)
+        xx2,yy2 = graph.grid.getpos(x2,y2)
+        size_sq = size*size
+        for (x,xx) in zip( range(x1,x2, grid_density), range(xx1,xx2) ):
+            for (y,yy) in zip( range(y1,y2, grid_density), range(yy1,yy2) ):
+                relpos = (pos.x - x, pos.y - y)
+                dist_sq = relpos[0]**2 + relpos[1]**2
+                if dist_sq < size_sq:
+                    graph.grid.data[xx][yy] += val
+
+    def grid_gaussian(self, graph, pos, size, val):
+        xmin,xmax = int(self.c.player.center.x-grid_radius), int(self.c.player.center.x+grid_radius+1)
+        ymin,ymax = int(self.c.player.center.y-grid_radius), int(self.c.player.center.y+grid_radius+1)
+        x1,x2 = int(max(xmin, pos.x - size - grid_density)), int(min(xmax, pos.x + size + grid_density))
+        y1,y2 = int(max(ymin, pos.y - size - grid_density)), int(min(ymax, pos.y + size + grid_density))
+        xx1,yy1 = graph.grid.getpos(x1,y1)
+        xx2,yy2 = graph.grid.getpos(x2,y2)
+        size_sq = size*size
+        for (x,xx) in zip( range(x1,x2, grid_density), range(xx1,xx2) ):
+            for (y,yy) in zip( range(y1,y2, grid_density), range(yy1,yy2) ):
+                relpos = (pos.x - x, pos.y - y)
+                dist_sq = relpos[0]**2 + relpos[1]**2
+                if dist_sq < size_sq * 16:
+                    graph.grid.data[xx][yy] += val * math.exp(-dist_sq / size_sq / 2)
 
     def build_graph(self):
         graph = Graph(None, [])
@@ -227,20 +264,36 @@ class PathfindingTesterStrategy:
 
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
         
-        xmin,xmax = int(self.c.player.center.x-grid_radius),  int(self.c.player.center.x+grid_radius+1)
-        ymin,ymax = int(self.c.player.center.y-grid_radius),  int(self.c.player.center.y+grid_radius+1)
+        xmin,xmax = int(self.c.player.center.x-grid_radius), int(self.c.player.center.x+grid_radius+1)
+        ymin,ymax = int(self.c.player.center.y-grid_radius), int(self.c.player.center.y+grid_radius+1)
 
+        own_speed = speed(get_my_largest_cell(self.c))
+        if own_speed == 0:
+            own_speed = 1
         for cell in interesting_cells:
-            x1,x2 = max(xmin, cell.pos.x - 3*cell.size - grid_density), min(xmax, cell.pos.x + 3*cell.size + grid_density)
-            y1,y2 = max(ymin, cell.pos.y - 3*cell.size - grid_density), min(ymax, cell.pos.y + 3*cell.size + grid_density)
-            xx1,yy1 = graph.grid.getpos(x1,y1)
-            xx2,yy2 = graph.grid.getpos(x2,y2)
-            for (x,xx) in zip( range(x1,x2, grid_density), range(xx1,xx2) ):
-                for (y,yy) in zip( range(y1,y2, grid_density), range(yy1,yy2) ):
-                    relpos = (cell.pos.x - x, cell.pos.y - y)
-                    dist = math.sqrt(relpos[0]**2 + relpos[1]**2)
-                    if dist < cell.size + 100:
-                        graph.grid.data[xx][yy] = 100000000
+            if is_dangerous_virus(cell, self.c):
+                self.grid_circle(graph, cell.pos, cell.size, inf)
+            elif is_enemy(cell, self.c):
+                dist = (cell.pos - self.c.player.center).len()
+                dist_until_eaten = max(0, dist - cell.size)
+                eta = dist / own_speed
+
+                danger_zone = cell.size + (0 if not is_splitkiller(cell, self.c) else 700)
+                
+                extrapolated_pos = cell.pos
+                movement_range = 0
+                try:
+                    extrapolated_pos += cell.movement * eta
+                    movement_range =  cell.movement.len() * eta
+                except AttributeError:
+                    pass
+
+                if dist_until_eaten < 100:
+                    self.grid_circle(graph, cell.pos, cell.size, inf)
+                else:
+                    self.grid_circle(graph, cell.pos, danger_zone, 1000)
+
+
                 
         xx1,yy1 = graph.grid.getpos(xmin,ymin)
         xx2,yy2 = graph.grid.getpos(xmax+1,ymax+1)
