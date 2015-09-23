@@ -145,7 +145,7 @@ class Node:
     def siblings(self):
         x,y = self.graph.grid.getpos(self.point)
         links = [self.graph.grid.data[d[0]][d[1]] for d in [(x-1, y),(x-1,y-1),(x,y - 1),(x+1,y-1),(x+1,y),(x+1,y+1),(x,y + 1),(x-1,y+1)]]
-        return [link for link in links if link.value != None] + self.near_wormholes
+        return [link for link in links if link.value != None]# + self.near_wormholes
 
 def distance(point,point2):
     return math.sqrt((point.point[0] - point2.point[0])**2 + (point.point[1]-point2.point[1])**2)
@@ -199,7 +199,7 @@ def aStar(start, goal):
     
     raise ValueError('No Path Found')
 
-grid_density=30
+grid_density=int(30)
 grid_radius=int(1100/grid_density)*grid_density
 
 
@@ -230,8 +230,8 @@ class PathfindingTesterStrategy:
     def grid_gaussian(self, graph, pos, size, val):
         xmin,xmax = int(self.c.player.center.x-grid_radius), int(self.c.player.center.x+grid_radius+1)
         ymin,ymax = int(self.c.player.center.y-grid_radius), int(self.c.player.center.y+grid_radius+1)
-        x1,x2 = int(max(xmin, pos.x - size - grid_density)), int(min(xmax, pos.x + size + grid_density))
-        y1,y2 = int(max(ymin, pos.y - size - grid_density)), int(min(ymax, pos.y + size + grid_density))
+        x1,x2 = int(max(xmin, pos.x - 4*size - grid_density)), int(min(xmax, pos.x + 4*size + grid_density))
+        y1,y2 = int(max(ymin, pos.y - 4*size - grid_density)), int(min(ymax, pos.y + 4*size + grid_density))
         xx1,yy1 = graph.grid.getpos(x1,y1)
         xx2,yy2 = graph.grid.getpos(x2,y2)
         size_sq = size*size
@@ -272,15 +272,15 @@ class PathfindingTesterStrategy:
             own_speed = 1
         for cell in interesting_cells:
             if is_dangerous_virus(cell, self.c):
-                self.grid_circle(graph, cell.pos, cell.size, inf)
+                self.grid_circle(graph, cell.pos, cell.size + 50, inf)
             elif is_enemy(cell, self.c):
                 dist = (cell.pos - self.c.player.center).len()
                 dist_until_eaten = max(0, dist - cell.size)
                 eta = dist / own_speed
 
-                danger_zone = cell.size + (0 if not is_splitkiller(cell, self.c) else 700)
+                danger_zone = cell.size + (200 if not is_splitkiller(cell, self.c) else 800)
                 
-                extrapolated_pos = cell.pos
+                extrapolated_pos = cell.pos.copy()
                 movement_range = 0
                 try:
                     extrapolated_pos += cell.movement * eta
@@ -288,10 +288,10 @@ class PathfindingTesterStrategy:
                 except AttributeError:
                     pass
 
-                if dist_until_eaten < 100:
-                    self.grid_circle(graph, cell.pos, cell.size, inf)
-                else:
-                    self.grid_circle(graph, cell.pos, danger_zone, 1000)
+                if dist_until_eaten < 300:
+                    self.grid_circle(graph, cell.pos, cell.size + 50, inf)
+                    
+                self.grid_gaussian(graph, extrapolated_pos, danger_zone, 1000)
 
 
                 
@@ -316,11 +316,13 @@ class PathfindingTesterStrategy:
 
     def plan_path(self):
         graph = self.build_graph()
+        self.oldgraph=graph
 
         path = aStar(graph.grid.at(self.c.player.center), graph.grid.at(self.gui.marker[0]))
         return path
 
     def path_is_valid(self, path):
+        return True # TODO FIXME
         interesting_cells = list(filter(lambda c : not (c.is_food or c in self.c.player.own_cells), self.c.player.world.cells.values()))
         for node in path:
             for cell in interesting_cells:
@@ -339,6 +341,36 @@ class PathfindingTesterStrategy:
             self.gui.draw_line((self.c.player.center.x - x,-8000), (self.c.player.center.x - x, 8000), color)
             self.gui.draw_line((self.c.player.center.x + x,-8000), (self.c.player.center.x + x, 8000), color)
 
+        graph = None
+        try:
+            graph = self.build_graph()
+            pass
+        except:
+            pass
+
+        if graph != None:
+            x1,y1 = self.c.player.center.x - grid_radius, self.c.player.center.y - grid_radius
+            x1,y1 = int(x1),int(y1)
+            xx1,yy1 = graph.grid.getpos(x1,y1)
+            for x,xx in zip(range(x1, x1+2*grid_radius, grid_density), range(xx1, xx1+9999)):
+                for y,yy in zip(range(y1, y1+2*grid_radius, grid_density), range(yy1, yy1+9999)):
+                    try:
+                        v=None
+                        try:
+                            v = graph.grid.data[xx][yy].value
+                        except:
+                            pass
+                        if v == None: v = 9999999999
+
+                        col = float(v)/10
+
+                        self.gui.draw_circle((x,y),5, mkcolor(v/2500), True)
+                    except IndexError:
+                        pass
+
+        else:
+            print("ach ficken")
+            pass
 
         if self.gui.marker_updated[0]:
             self.gui.marker_updated[0]=False
@@ -364,3 +396,11 @@ class PathfindingTesterStrategy:
         if self.path:
             return self.path[0].point
         return self.gui.marker[0]
+
+def mkcolor(v):
+    if v<0: return (0,255,255)
+    if v>1: return (255,255,128)
+    if v < 1/4: return (0,0,int(255*v*4))
+    if v < 2/4: return (int(255*(v-1/4)*4),0,255)
+    if v < 3/4: return (255,0,int(255-255*(v-2/4)*4))
+    else:       return (255,int(255*(v-3/4)*4),0)

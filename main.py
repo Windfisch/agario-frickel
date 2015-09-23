@@ -152,12 +152,13 @@ try:
                 autorespawn_counter-=1
 
         fps = clock.getfps()
-        if clock.newfps:
+        if False and clock.newfps:
             print("FPS: %3d" % fps)
             if fps < 24:
                 probs.report("low fps")
             if fps > 50:
                 probs.report("high fps")
+
 except ProblemException:
     print("Exiting due to a problem such as low/high fps, network lags etc")
 
