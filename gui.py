@@ -80,12 +80,20 @@ def draw_box(rect, color, filled=False, global_coords=True):
             world_to_win_pt(rect[0][0], c.player.center),
             world_to_win_pt(rect[0][1], c.player.center)
         )
-        rect = (t, rect[1])
+        w = (
+            world_to_win_length(rect[1][0]),
+            world_to_win_length(rect[1][1])
+        )
+        rect = (t, w)
     
     if filled:
         screen.fill(color, rect)
     else:
         gfxdraw.rectangle(screen, rect, color)
+
+
+def draw_square(pos, r, color, filled=False, global_coords=True):
+    draw_box(((pos[0]-r, pos[1]-r),(pos[0]+r,pos[1]+r)), color, filled, global_coords)
 
 def draw_circle(pos, r, color, filled=False, global_coords=True):
     if global_coords:
