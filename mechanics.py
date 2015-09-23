@@ -21,10 +21,10 @@ def get_my_largest_cell(c):
     return sorted(c.player.own_cells, key = lambda x: x.mass)[-1]
 
 def is_enemy(cell, c):
-    return (not cell.same_player(c.player.own_cells[0])) and cell.mass > 1.25 * get_my_smallest_cell(c).mass
+    return not cell.is_virus and not cell.is_food and not cell.is_ejected_mass and (not cell.same_player(random_own_cell(c))) and cell.mass > 1.25 * get_my_smallest_cell(c).mass
 
 def is_splitkiller(cell, c):
-    return (not cell.same_player(c.player.own_cells[0])) and cell.mass > 2.5  * get_my_smallest_cell(c).mass
+    return not cell.is_virus and not cell.is_food and not cell.is_ejected_mass and(not cell.same_player(random_own_cell(c))) and cell.mass > 2.5  * get_my_smallest_cell(c).mass and cell.mass < 10 * get_my_smallest_cell(c).mass
 
 def is_edible(cell, c):
     return cell.is_food or cell.is_ejected_mass or ( (not cell.same_player(c.player.own_cells[0])) and not is_enemy(cell,c) and get_my_largest_cell(c).mass > 1.25 * cell.mass )
