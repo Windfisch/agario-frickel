@@ -87,7 +87,7 @@ for i in range(1,10): # 10 connection attempts
         # find out server and token to connect
         try:
             token = sys.argv[1]
-            addr, *_ = utils.get_party_address(token)
+            addr = utils.get_party_address(token)
             print("using party token")
 
         except:
