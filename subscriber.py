@@ -13,6 +13,9 @@ class DummySubscriber:
     def on_sock_closed(self):
         log("on sock closed")
 
+    def on_server_version(self, number, text):
+        pass
+
     def on_message_error(self,s):
         log("on msg err "+s)
 
