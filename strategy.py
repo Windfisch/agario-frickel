@@ -11,7 +11,7 @@ friendly_players=["Windfisch","windfisch","Cyanide","cyanide"] +\
 class Strategy:
     def __init__(self, c, gui=None):
         self.target = (0,0)
-        self.has_target = False
+        self.target_type = None
         self.target_cell = None
         self.color = (0,0,0)
         self.c = c
@@ -48,12 +48,15 @@ class Strategy:
             return False
     
     def splitkiller(self, cell):
-        return not cell.is_virus and not cell.is_food and cell.mass > 1.25*2*self.get_my_smallest().mass
+        return not cell.is_virus and not cell.is_food and cell.mass+20 > 1.25*2*self.get_my_smallest().mass and cell.mass / 15. < self.c.player.total_mass
+
+    def hugecell(self, cell):
+        return not cell.is_virus and not cell.is_food and cell.mass / 15. >= self.c.player.total_mass
     
     def nonsplitkiller(self, cell):
-        return not cell.is_virus and not cell.is_food and 1.20*self.get_my_smallest().mass < cell.mass and cell.mass < 1.25*2*self.get_my_smallest().mass
+        return not cell.is_virus and not cell.is_food and 1.20*self.get_my_smallest().mass < cell.mass and cell.mass+20 < 1.25*2*self.get_my_smallest().mass
     
-    def quality(self, cell, myspeed):
+    def quality(self, cell, cells, myspeed):
         dd_sq = max((cell.pos[0]-self.c.player.center[0])**2 + (cell.pos[1]-self.c.player.center[1])**2,0.001)
         sigma = 500 * max(cell.mass,1) # TODO FIXME don't try to eat running away cells
         if mechanics.speed(cell) - myspeed >= 0:
@@ -61,9 +64,11 @@ class Strategy:
 
         dist_score = -math.exp(-dd_sq/(2*sigma**2))
 
-        rivals = filter(lambda r : self.rival(r,cell), self.c.world.cells.values())
-        splitkillers = filter(self.splitkiller, self.c.world.cells.values())
-        nonsplitkillers = filter(self.nonsplitkiller, self.c.world.cells.values())
+
+        rivals = filter(lambda r : self.rival(r,cell), cells)
+        hugecells = filter(self.hugecell, cells)
+        splitkillers = filter(self.splitkiller, cells)
+        nonsplitkillers = filter(self.nonsplitkiller, cells)
 
         rival_score = 0
         for r in rivals:
@@ -71,49 +76,39 @@ class Strategy:
             sigma = r.size + 100
             rival_score += math.exp(-dd_sq/(2*sigma**2))
 
+        hugecell_score = 0
+        for s in hugecells:
+            dd_sq = max(0.001, (s.pos[0]-cell.pos[0])**2 + (s.pos[1]-cell.pos[1])**2)
+            sigma = s.size + 10
+            hugecell_score += math.exp(-dd_sq/(2*sigma**2))
+
         splitkill_score = 0
         for s in splitkillers:
             dd_sq = max(0.001, (s.pos[0]-cell.pos[0])**2 + (s.pos[1]-cell.pos[1])**2)
-            sigma = (500+2*s.size)
+            sigma = s.size + 650  + 250
             splitkill_score += math.exp(-dd_sq/(2*sigma**2))
 
         nonsplitkill_score = 0
         for s in nonsplitkillers:
             dd_sq = max(0.001, (s.pos[0]-cell.pos[0])**2 + (s.pos[1]-cell.pos[1])**2)
-            sigma = (300+s.size)
+            sigma = (75+s.size) + 250
             nonsplitkill_score += math.exp(-dd_sq/(2*sigma**2))
 
         density_score = 0
         sigma = 300
-        for f in filter(lambda c : c.is_food and c!=cell, self.c.world.cells.values()):
-            dd_sq = (f.pos[0]-cell.pos[0])**2 + (f.pos[1]-cell.pos[1])**2
-            density_score -= math.exp(-dd_sq/(2*sigma**2))
+        #for f in filter(lambda c : c.is_food and c!=cell, self.c.world.cells.values()):
+        #    dd_sq = (f.pos[0]-cell.pos[0])**2 + (f.pos[1]-cell.pos[1])**2
+        #    density_score -= math.exp(-dd_sq/(2*sigma**2))
 
         wall_score = 0
         wall_dist = min( cell.pos[0]-self.c.world.top_left[1], self.c.world.bottom_right[1]-cell.pos[0], cell.pos[1]-self.c.world.top_left[0], self.c.world.bottom_right[0]-cell.pos[1] )
         sigma = 100
         wall_score = math.exp(-wall_dist**2/(2*sigma**2))
 
-        return 2.5*dist_score + 0.2*rival_score + nonsplitkill_score + 5*splitkill_score + 0.1*density_score + 5*wall_score
+        return 0.5*dist_score + 0.2*rival_score + 5.0*hugecell_score + 5.0*nonsplitkill_score + 15*splitkill_score + 0.1*density_score + 5*wall_score
         ##print (density_score)
         #return density_score
     
-    def weight_cell(self, cell):
-        df = (10/self.dist(cell))
-        if self.edible(cell):
-            quality = self.quality(cell)
-            if cell.is_food:
-                return 1 + cell.mass * df * quality
-            else:
-                mf = 1 / ((self.get_my_smallest().mass * 0.75) + 1) - cell.mass
-                return cell.mass * df * quality * mf
-        elif self.threat(cell):
-            if cell.is_virus:
-                return -cell.mass * df * 100
-            else:
-                return -cell.mass * df
-        else:
-            return 0
     
     def process_frame(self):
         runaway = False
@@ -121,6 +116,7 @@ class Strategy:
         my_smallest = min(self.c.player.own_cells, key=lambda cell : cell.mass)
         my_largest =  max(self.c.player.own_cells, key=lambda cell : cell.mass)
 
+        cells = filter(lambda r : not r.is_food and not r.is_virus, self.c.world.cells.values())
         friendly_cells = list(filter(lambda c : c.is_virus or c.name in friendly_players, self.c.world.cells.values()))
 
         if friendly_cells:
@@ -144,7 +140,7 @@ class Strategy:
                 self.gui.hilight_cell(friend_to_feed, (255,255,255),(255,127,127),30)
 
                 self.target_cell = friend_to_feed
-                self.has_target = True
+                self.target_type = 'friend'
         
         if self.do_approach_friends:
             for c in self.c.player.own_cells:
@@ -226,7 +222,7 @@ class Strategy:
             else:
                 allowed_dist = "don't care"
 
-            if allowed_dist != "don't care" and dist < allowed_dist:
+            if allowed_dist != "don't care" and dist < allowed_dist and False:
                 try:
                     angle = math.atan2(relpos[1],relpos[0])
                     corridor_halfwidth = math.asin(min(1, cell.size / dist))
@@ -264,7 +260,7 @@ class Strategy:
             runaway_x, runaway_y = (self.c.player.center[0]+int(100*math.cos(runaway_angle))), (self.c.player.center[1]+int(100*math.sin(runaway_angle)))
             
             self.target = (runaway_x, runaway_y)
-            self.has_target = False
+            self.target_type = None
             self.target_cell = None
             
             self.color = (255,0,0)
@@ -273,32 +269,43 @@ class Strategy:
             for i in forbidden_intervals:
                 self.gui.draw_arc(self.c.player.center, self.c.player.total_size+10, i, (255,0,255))
 
-        # if however there's no enemy to avoid, try to feed a friend. or chase food or jizz randomly around
+        # if however there's no enemy to avoid, try to feed a friend. or chase food or fly randomly around
         else:
             if self.target_cell != None:
                 self.target = tuple(self.target_cell.pos)
+
+                # check if target went out of sight, or became infeasible
                 if self.target_cell not in self.c.world.cells.values() or (not self.edible(self.target_cell) and not self.target_cell in friendly_cells):
                     self.target_cell = None
-                    self.has_target = False
+                    self.target_type = None
+
             elif self.target == tuple(self.c.player.center):
-                self.has_target = False
+                self.target_type = None
                 print("Reached random destination")
             
-            if not self.has_target:
+            if not self.target_type == 'friend': # i.e. None, random or food
                 food = list(filter(self.edible, self.c.world.cells.values()))
-                food = sorted(food, key = lambda c : self.quality(c, mechanics.speed(my_largest)))
+                myspeed = mechanics.speed(my_largest)
+                food = sorted(food, key = lambda c : self.quality(c, cells, myspeed))
                 
                 if len(food) > 0:
-                    self.target = (food[0].pos[0], food[0].pos[1])
-                    self.target_cell = food[0]
-                    
-                    self.has_target = True
-                    self.color = (0,0,255)
-                else:
+                    food_candidate = food[0]
+
+                    if self.target_type == None or self.target_type == 'random' or (self.target_type == 'food' and self.quality(food_candidate, cells, myspeed) < self.quality(self.target_cell, cells, myspeed)-1):
+                        if self.target_type == 'food':
+                            print("abandoning food of value %.3f for %.3f" % (self.quality(self.target_cell, cells, myspeed),self.quality(food_candidate, cells, myspeed)))
+
+                        self.target_cell = food_candidate
+                        self.target = (self.target_cell.pos[0], self.target_cell.pos[1])
+                        
+                        self.target_type = 'food'
+                        self.color = (0,0,255)
+                
+                if self.target == None:
                     rx = self.c.player.center[0] + random.randrange(-400, 401)
                     ry = self.c.player.center[1] + random.randrange(-400, 401)
                     self.target = (rx, ry)
-                    self.has_target = True
+                    self.target_type = 'random'
                     self.color = (0,255,0)
                     print("Nothing to do, heading to random targetination: " + str((rx, ry)))
         
