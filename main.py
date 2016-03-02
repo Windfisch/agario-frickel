@@ -151,6 +151,11 @@ try:
     # main loop
     while gui.running:
         c.on_message()
+
+        if not sub.isNewFrame():
+            continue
+
+
         if clock.tic() > 1./20:
             print("NETWORK LAG")
             probs.report("network lag")

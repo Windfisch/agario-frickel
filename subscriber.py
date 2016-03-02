@@ -120,6 +120,12 @@ class EnhancingSubscriber(DummySubscriber):
         self.history = {}
         self.time = 0
         self.victims = {}
+        self.newFrame = False
+
+    def isNewFrame(self):
+        tmp = self.newFrame
+        self.newFrame = False
+        return tmp
 
     def set_client(self,c):
         self.c = c
@@ -148,6 +154,8 @@ class EnhancingSubscriber(DummySubscriber):
             pass
 
     def on_world_update_post(self):
+        self.newFrame = True
+
         self.c.world.time = self.time
         self.time += 1
 
