@@ -41,6 +41,9 @@ class DummySubscriber:
     def on_sock_open(self):
         log("on sock open")
 
+    def on_cell_skin(self, skin_url):
+        pass
+
     def on_sock_closed(self):
         log("on sock closed")
 
