@@ -253,7 +253,7 @@ class Strategy:
             else:
                 allowed_dist = "don't care"
 
-            if allowed_dist != "don't care" and dist < allowed_dist and False:
+            if allowed_dist != "don't care" and dist < allowed_dist:
                 try:
                     angle = math.atan2(relpos[1],relpos[0])
                     corridor_halfwidth = math.asin(min(1, cell.size / dist))
